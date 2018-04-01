@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/series-label.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <title>💾Recorder💾</title>
+</head>
+<body>
+    <div class="container-fluid">
+        <h5>Orientation</h5>
+        <div class="row">
+            <div class="col-12">
+                <span>alpha: </span>
+                <span class="alpha"></span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <span>beta:</span>
+                <span class="beta"></span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <span>gamma:</span>
+                <span class="gamma"></span>
+            </div>
+        </div>
+
+        <!-- <h5>Acceleration without gravity</h5>
+        <div class="row">
+            <div class="col-8">
+                <div>
+                    <span>x: </span>
+                    <span class="x"></span>
+                </div>
+                <div>
+                    <span>y:</span>
+                    <span class="y"></span>
+                </div>
+                <div>
+                    <span>z:</span>
+                    <span class="z"></span>
+                </div>
+            </div>
+            <div class="col-4">
+                <video class="player"></video>
+            </div>
+        </div> -->
+
+
+        <h5>Acceleration with gravity</h5>
+        <div class="row">
+            <div class="col-8">
+                <div>
+                    <span>x: </span>
+                    <span class="x-g"></span>
+                </div>
+                <div>
+                    <span>y:</span>
+                    <span class="y-g"></span>
+                </div>
+                <div>
+                    <span>z:</span>
+                    <span class="z-g"></span>
+                </div>
+            </div>
+            <div class="col-4">
+                <video class="player"></video>
+            </div>
+        </div>
+        
+        <h5>Position</h5>
+        <div class="row">
+            <div class="col-12">
+                <div id="position"></div>
+            </div>
+        </div>
+        <button id="start-stop" class="btn btn-success">start</button>
+        <input type="checkbox" name="draw-flag" id="draw-flag" checked>
+        <label for="">Draw Highchart?</label>
+        
+        <div id="highchart-container"></div>
+        <div id="storageEstimate"></div>
+        <!-- <button id="a">storage</button> -->
+        <div id="temp"></div>
+        <div id="log"></div>
+        <!-- <canvas class="photo"></canvas>         -->
+    </div>
+    <script>
+        $(function () {
+            let ios_device = false;
+            const initial_time = Date.now()
+            let storeValue = []
+            let [lat, lng, alpha, beta, gamma] = [null, null, null, null, null]
+            let [start_flag, drawHighchart_flag] = [false, false]
+
+            const highchart = Highcharts.chart('highchart-container', {
+                chart: {
+                    type: 'spline',
+                    animation: Highcharts.svg, // don't animate in old IE
+                    animation: false,
+                    marginRight: 10,
+                },
+                title: {
+                    text: 'Device orientation & acceleration'
+                },
+                subtitle: {
+                    text: 'Source: device g-sensor'
+                },
+                xAxis: {
+                    title: {
+                        enabled: true,
+                        text: 'series'
+                    },
+                    startOnTick: true,
+                    endOnTick: true,
+                    showLastLabel: true
+                },
+                yAxis: {
+                    title: {
+                        text: 'value'
+                    },
+                    min: -30,
+                    max: 30,
+                    plotLines: [{
+                        value: 9.8,
+                        color: 'orange',
+                        dashStyle: 'shortdash',
+                        width: 2,
+                        label: {
+                            text: '9.8',
+                            color: 'orange'
+                        }
+                    }]
+                },
+                legend: {
+                    layout: 'vertical',
+                    align: 'left',
+                    verticalAlign: 'top',
+                    x: 100,
+                    y: 70,
+                    floating: true,
+                    backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF',
+                    borderWidth: 1
+                },
+                plotOptions: {
+                    scatter: {
+                        marker: {
+                            radius: 3,
+                            states: {
+                                hover: {
+                                    enabled: true,
+                                    lineColor: 'rgb(100,100,100)'
+                                }
+                            }
+                        },
+                        states: {
+                            hover: {
+                                marker: {
+                                    enabled: false
+                                }
+                            }
+                        },
+                        tooltip: {
+                            headerFormat: '<b>{series.name}</b><br>',
+                            pointFormat: '#{point.x}, {point.y}'
+                        }
+                    }
+                },
+                series: [
+                    {
+                        name: 'x',
+                        data: (function () {
+                            var data = []
+                            for (var i = -999; i <= 0; i++) {
+                                data.push({
+                                    x: 0,
+                                    y: 0
+                                });
+                            }
+
+                            return data;
+                        }())
+                    },
+                    {
+                        name: 'y',
+                        data: (function () {
+                            var data = []
+                            for (var i = -999; i <= 0; i++) {
+                                data.push({
+                                    x: 0,
+                                    y: 0
+                                });
+                            }
+
+                            return data;
+                        }())
+                    },
+                    {
+                        name: 'z',
+                        data: (function () {
+                            var data = []
+                            for (var i = -999; i <= 0; i++) {
+                                data.push({
+                                    x: 0,
+                                    y: 0
+                                });
+                            }
+
+                            return data;
+                        }())
+                    }
+                ],
+                exporting: {
+                    allowHTML: true       
+                }
+            })            
+
+            const geo_options = {
+                enableHighAccuracy: true,
+                maximumAge: 30000,
+                timeout: 27000
+            }
+
+            is_iPhone_or_iPad()
+
+            const wpid = navigator.geolocation.watchPosition(geo_success, geo_error, geo_options)
+
+            window.addEventListener('deviceorientation', handleOrientation, false);
+            window.addEventListener('devicemotion', handleMotion)
+
+            
+            navigator.geolocation.getCurrentPosition(function(position) { 
+                geo_success(position)
+            })
+
+            $("#a").click(function() {
+                localStorageSpace()
+            })
+
+            $("#start-stop").click(function() {
+                start_flag = !start_flag
+                drawHighchart_flag = $("#draw-flag").is(":checked")
+                if(start_flag){
+                    $(this).html('Stop').removeClass('btn-success').addClass('btn-danger')
+                } else{
+                    $(this).html('Start').removeClass('btn-danger').addClass('btn-success')                    
+                    // download to  local 
+                    if (!ios_device) {
+                        const data = "text/json;charset=utf-8," + encodeURIComponent(localStorage.getItem('record'))
+                        let a = document.createElement('a')
+                        a.href = 'data:' + data
+                        a.download = getTimestamp() + '.json'
+                        a.innerHTML = 'download JSON'
+                        const container = document.getElementById('temp')
+                        container.appendChild(a)
+                        a.click()
+                        a.remove()
+                    }
+                }                
+            })
+
+            function geo_success(position) {                
+                lat = position.coords.latitude
+                lng = position.coords.longitude
+                $("#position").html( lat + ', ' + lng )
+            }
+
+            function geo_error(e) {
+                alert("code: " + e.code + " message: " + e.message);
+                alert("Sorry, no position available.")
+            }
+            
+            function stopWatching(){
+                clearWatch(wpid)
+            }
+            
+            function handleOrientation(e) {
+                [alpha = 'n/a', beta = 'n/a', gamma = 'n/a'] = [e.alpha, e.beta, e.gamma]
+                $(".alpha").text(typeof (alpha) === 'number' ? alpha.toFixed(6) : alpha)
+                $(".beta").text(typeof (beta) === 'number' ? beta.toFixed(6) : beta)
+                $(".gamma").text(typeof (gamma) === 'number' ? gamma.toFixed(6) : gamma)
+                [alpha, beta, gamma] = [
+                    typeof (alpha) === 'number' ? alpha.toFixed(6) : alpha, 
+                    typeof (beta) === 'number' ? beta.toFixed(6) : beta, 
+                    typeof (gamma) === 'number' ? gamma.toFixed(6) : gamma
+                ]
+                // const draw_x = (Date.now() - initial_time) / 1000.0;
+                // const draw_y = alpha;
+                // highchart.series[0].addPoint([draw_x, draw_y], true, true);
+                // highchart.redraw(); // needless it has excute in addPoint 2nd parameter(set it to true)                
+            }
+
+            function handleMotion(e) {
+                const [x_g = 'n/a', y_g = 'n/a', z_g = 'n/a'] = [
+                    e.accelerationIncludingGravity.x,
+                    e.accelerationIncludingGravity.y,
+                    e.accelerationIncludingGravity.z
+                ]
+                const [x = 'n/a', y = 'n/a', z = 'n/a'] = [
+                    e.acceleration.x,
+                    e.acceleration.y,
+                    e.acceleration.z
+                ]
+
+                // $(".x").text(typeof (x) === 'number' ? x.toFixed(6) : x)
+                // $(".y").text(typeof (y) === 'number' ? y.toFixed(6) : y)
+                // $(".z").text(typeof (z) === 'number' ? z.toFixed(6) : z)
+
+                $(".x-g").text(typeof (x_g) === 'number' ? x_g.toFixed(6) : x_g)
+                $(".y-g").text(typeof (y_g) === 'number' ? y_g.toFixed(6) : y_g)
+                $(".z-g").text(typeof (z_g) === 'number' ? z_g.toFixed(6) : z_g)
+
+
+                
+                if(start_flag) {
+                    if(drawHighchart_flag) {
+                        const draw_x = (Date.now() - initial_time) / 1000.0;
+                        highchart.series[0].addPoint([draw_x, x_g], true, true)
+                        highchart.series[1].addPoint([draw_x, y_g], true, true)
+                        highchart.series[2].addPoint([draw_x, z_g], true, true)
+                        highchart.redraw(); // needless it has excute in addPoint 2nd parameter(set it to true)
+                    }
+
+                    storeValue.push({
+                        time: Date.now(),
+                        lat: lat.toFixed(6),
+                        lng: lng.toFixed(6),
+                        alpha: alpha.toFixed(6),
+                        beta: beta.toFixed(6),
+                        gamma: gamma.toFixed(6),
+                        x: x_g.toFixed(6),
+                        y: y_g.toFixed(6),
+                        z: z_g.toFixed(6)
+                    })
+                    localStorage.setItem('record', JSON.stringify(storeValue))
+                }            
+            }
+
+            function localStorageSpace() {
+                var data = '';
+
+                // console.log('Current local storage: ');
+
+                for (var key in window.localStorage) {
+
+                    if (window.localStorage.hasOwnProperty(key)) {
+                        data += window.localStorage[key];
+                        // console.log(key + " = " + ((window.localStorage[key].length * 16) / (8 * 1024)).toFixed(2) + ' KB');
+                    }
+
+                }
+
+                // console.log(data ? '\n' + 'Total space used: ' + ((data.length * 16) / (8 * 1024)).toFixed(2) + ' KB' : 'Empty (0 KB)');
+                // console.log(data ? 'Approx. space remaining: ' + (5120 - ((data.length * 16) / (8 * 1024)).toFixed(2)) + ' KB' : '5 MB');
+                let text = data ? '\n' + 'Total space used: ' + ((data.length * 16) / (8 * 1024)).toFixed(2) + ' KB' : 'Empty (0 KB)'
+                text += '</br>'
+                text += data ? 'Approx. space remaining: ' + (5120 - ((data.length * 16) / (8 * 1024)).toFixed(2)) + ' KB' : '5 MB'
+                $("#storageEstimate").html(text)
+            }
+
+            function is_iPhone_or_iPad() {
+                if (navigator.platform.match(/i(Phone|Pad)/i)) {
+                    ios_device = true
+                }
+            }
+
+            function getTimestamp(){
+                const time = new Date()
+                const[year, month, day, hour, min, sec] = [
+                    time.getFullYear(),
+                    time.getMonth().toString().padStart(2, "0"),
+                    time.getDate().toString().padStart(2, "0"),
+                    time.getHours().toString().padStart(2, "0"),
+                    time.getMinutes().toString().padStart(2, "0"),
+                    time.getSeconds().toString().padStart(2, "0")
+                ]
+                return year + month + day + '-' + hour + min + sec
+            }
+
+
+
+
+            const video = document.querySelector('.player');
+            // const canvas = document.querySelector('.photo');
+            // const ctx = canvas.getContext('2d');
+            
+            
+
+            function getVideo() {                
+                // navigator.mediaDevices.getUserMedia({ 
+                //     video: true, 
+                //     audio: false 
+                // })
+                // .then(localMediaStream => {                          
+                //     console.log(localMediaStream);                        
+                //     video.src = window.URL.createObjectURL(localMediaStream);
+                //     video.play();
+                // })
+                // .catch(err => {                        
+                //     console.error(`OH NO!!!`, err);                    
+                // });
+
+
+
+                navigator.mediaDevices.enumerateDevices()
+                .then(devices => {
+                    devices = devices.filter( devices => { return devices.kind === 'videoinput'; });
+                    let videoinput_id = '';
+                    devices.forEach(device => {
+                        if(device.label.toLowerCase().search("back") >-1){
+                            videoinput_id = device.deviceId;
+                        }
+                    });
+                    if(videoinput_id != ''){
+                        navigator.mediaDevices.getUserMedia({ video: { deviceId: {'exact':videoinput_id}, facingMode: 'environment', width:{ideal: 128}, height:{ideal: 72} }})
+                        .then(localMediaStream => {                        
+                            console.log(localMediaStream);                        
+                            video.src = window.URL.createObjectURL(localMediaStream);
+                            video.play();
+                        })
+                        .catch(err => {                        
+                            console.error(`OH NO!!!`, err);
+                            $("#log").append('not empty')
+                            $("#log").append(err)
+                        })
+                    }else{
+                        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width:{ideal: 128}, height:{ideal: 72} }})
+                        .then(localMediaStream => {                        
+                            console.log(localMediaStream);                        
+                            video.src = window.URL.createObjectURL(localMediaStream);
+                            video.play();
+                        })
+                        .catch(err => {                        
+                            console.error(`OH NO!!!`, err);
+                            $("#log").append(err)
+                        })
+                    }
+                });
+
+
+
+            }
+
+            function paintToCanvas() {
+                const width = video.videoWidth;
+                const height = video.videoHeight;
+                canvas.width = width;
+                canvas.height = height;
+
+                return setInterval(() => {
+                    ctx.drawImage(video, 0, 0, width, height);
+                    // take the pixels out
+                    let pixels = ctx.getImageData(0, 0, width, height);
+                    // mess with them
+                    // pixels = redEffect(pixels);
+
+                    pixels = rgbSplit(pixels);
+                    // ctx.globalAlpha = 0.8;
+
+                    // pixels = greenScreen(pixels);
+                    // put them back
+                    ctx.putImageData(pixels, 0, 0);
+                }, 16);
+            }
+
+            getVideo();
+            
+        })
+
+
+        
+
+
+    </script>
+</body>
+</html>
