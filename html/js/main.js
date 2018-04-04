@@ -104,16 +104,30 @@ function initVideo() {
 				if (dev.label.toLowerCase().indexOf("front") > -1) {
 					video_facingMode = "user";
 				}
+				// not iphone/ipad, use back camera
 				if (!is_iphone_ipad() && dev.label.toLowerCase().indexOf("back") == -1) {
 					return;
 				}
+				// just use one camera in iphone/ipad
+				if (is_iphone_ipad() && devs.indexOf(dev) > 0) {
+					return;
+				}
 
-				navigator.mediaDevices.getUserMedia({
+				var constraints = {
+					audio: false,
 					video: {
 						deviceId: { exact: dev.deviceId },
 						facingMode: video_facingMode, width: video_width, height: video_height
 					}
-				}).then(function(media) {
+				};
+				if (is_iphone_ipad()) {
+					constraints = {
+						audio: false,
+						/* facingMode: environment for back, user for front */
+						video: { facingMode: "environment" }
+					};
+				}
+				navigator.mediaDevices.getUserMedia(constraints).then(function(media) {
 					var deviceIndex = devs.indexOf(dev) + 1;
 					var video = document.getElementById("camera" + deviceIndex);
 					var canvas = document.getElementById("drawer" + deviceIndex);
@@ -121,7 +135,15 @@ function initVideo() {
 					var img = document.getElementById("snapshot" + deviceIndex);
 					video.setAttribute("width", video_width);
 					video.setAttribute("height", video_height);
-					video.src = window.URL.createObjectURL(media);
+					if (is_iphone_ipad()) {
+						video.setAttribute("autoplay", "");
+						video.setAttribute("muted", "");
+						video.setAttribute("playsinline", "");
+						video.srcObject = media;
+					}
+					else {
+						video.src = window.URL.createObjectURL(media);
+					}
 					canvas.setAttribute("width", video_width);
 					canvas.setAttribute("height", video_height);
 					video.play();
@@ -133,11 +155,12 @@ function initVideo() {
 							var data = canvas.toDataURL("image/jpeg", 0.5);
 							snapshots.push({ image: data,
 								time: date_local_string(date) });
-							// img.setAttribute("src", data);
+							img.setAttribute("src", data);
 						}
 					}, 1000);
 				}).catch(function(e) {
-					pop_message("devs.forEach " + e.name + ": " + e.message);
+					pop_message("device getUserMedia: " + e.name + ": " + e.message + "<br/>" +
+						e.toString() + "<br/>" + this.toString());
 				});
 			});
 		}).catch(function(e) {
