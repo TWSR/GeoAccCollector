@@ -155,7 +155,8 @@ function initVideo() {
 							var data = canvas.toDataURL("image/jpeg", 0.5);
 							snapshots.push({ image: data,
 								time: date_local_string(date) });
-							img.setAttribute("src", data);
+							// disable base64 image src for better performance
+							// img.setAttribute("src", data);
 						}
 					}, 1000);
 				}).catch(function(e) {
@@ -196,6 +197,22 @@ function pushToServer() {
 		});
 }
 
+function start_recording_click() {
+	if ($("#start_recording").val() == "Start Recording") {
+		$("#start_recording").val("Stop Recording");
+
+		(function loop_push() {
+			pushToServer();
+			if ($("#start_recording").val() == "Stop Recording") {
+				setTimeout(loop_push, 1000);
+			}
+		}) ();
+	}
+	else {
+		$("#start_recording").val("Start Recording");
+	}
+}
+
 $(function() {
 	if (window.DeviceOrientationEvent) {
 		window.addEventListener("deviceorientation", handleOrientation, true);
@@ -213,5 +230,5 @@ $(function() {
 
 	initVideo();
 	$("#uuid").html("UUID: " + Cookies.get("uuid"));
-	$("#start_recording").button().click(pushToServer);
+	$("#start_recording").button().click(start_recording_click);
 });
