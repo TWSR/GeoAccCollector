@@ -66,6 +66,71 @@ function handleGeolocation(position) {
 		time: date_local_string(date) });
 }
 
+function my_inspect(obj) {
+	var string = "";
+	for (var prop in obj) {
+		
+	}
+}
+
+function pop_message(message) {
+	$("#message").html($("#message").html() + "<br/>" + message);
+}
+
+function initVideo() {
+	var video_width = 640, video_height = 480
+	navigator.mediaDevices.enumerateDevices()
+		.then(function(devices) {
+			var devs = devices.filter(function(d) {
+				return d.kind == "videoinput";
+			});
+			// pop_message(JSON.stringify(devices));
+			if (devs.length == 0) {
+				pop_message("No camera not found.");
+				return;
+			}
+			// pop_message(JSON.stringify(devs));
+			devs.forEach(function(dev) {
+				var video_facingMode = "environment";
+				if (dev.label.toLowerCase().search("front") > -1) {
+					video_facingMode = "user";
+				}
+
+				navigator.mediaDevices.getUserMedia({
+					video: {
+						deviceId: { exact: dev.deviceId },
+						facingMode: video_facingMode, width: video_width, height: video_height
+					}
+				}).then(function(media) {
+					var deviceIndex = devs.indexOf(dev) + 1;
+					var video = document.getElementById("camera" + deviceIndex);
+					var canvas = document.getElementById("drawer" + deviceIndex);
+					var context = canvas.getContext("2d");
+					var img = document.getElementById("snapshot" + deviceIndex);
+					video.setAttribute("width", video_width);
+					video.setAttribute("height", video_height);
+					video.src = window.URL.createObjectURL(media);
+					canvas.setAttribute("width", video_width);
+					canvas.setAttribute("height", video_height);
+					video.play();
+
+					setInterval(function snapshot() {
+						if (!video.ended) {
+							context.drawImage(video, 0, 0);
+							var data = canvas.toDataURL("image/jpeg", 0.5);
+							img.setAttribute("src", data);
+							pop_message(data);
+						}
+					}, 1000);
+				}).catch(function(e) {
+					pop_message(e.name + ": " + e.message);
+				});
+			});
+		}).catch(function(e) {
+			pop_message(e.name + ": " + e.message);
+		});
+}
+
 function pushToServer() {
 	var ori = orientations.splice(0, orientations.length);
 	var mot = motions.splice(0, motions.length);
@@ -89,5 +154,6 @@ $(function() {
 		navigator.geolocation.getCurrentPosition(handleGeolocation);
 	}
 
+	initVideo();
 	$("#start_recording").button().click(pushToServer);
 });
