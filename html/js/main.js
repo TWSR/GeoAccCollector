@@ -11,6 +11,7 @@ function date_local_string(date) {
 var ori_date = new Date(), mot_date = new Date(), geo_date = new Date();
 var ori_count = 0, mot_count = 0, geo_count = 0;
 var orientations = [], motions = [], geolocations = [];
+var snapshots = [];
 
 function handleOrientation(event) {
 	var date = new Date();
@@ -38,7 +39,14 @@ function handleMotion(event) {
 		"time: "      + date_local_string(date)  + "<br/>" +
 		"count: "     + mot_count + "<br/>" +
 		"data rate: " + (mot_count / ((date - mot_date) / 1000))  + "<br/>");
-	motions.push({ accelerationIncludingGravity: event.accelerationIncludingGravity, acceleration: event.acceleration, time: date_local_string(date) });
+	motions.push({
+		gacc_x: event.accelerationIncludingGravity.x,
+		gacc_y: event.accelerationIncludingGravity.y,
+		gacc_z: event.accelerationIncludingGravity.z,
+		acc_x: event.acceleration.x,
+		acc_y: event.acceleration.y,
+		acc_z: event.acceleration.z,
+		time: date_local_string(date) });
 }
 
 function handleGeolocation(position) {
@@ -66,34 +74,38 @@ function handleGeolocation(position) {
 		time: date_local_string(date) });
 }
 
-function my_inspect(obj) {
-	var string = "";
-	for (var prop in obj) {
-		
-	}
+function pop_message(message) {
+	$("#message").html(message);
 }
 
-function pop_message(message) {
-	$("#message").html($("#message").html() + "<br/>" + message);
+function pop_debug_message(message) {
+	$("#debug_message").html($("#debug_message").html() + "<br/>" + message);
+}
+
+function is_iphone_ipad() {
+	return /iPhone/i.test(navigator.userAgent) || /iPad/i.test(navigator.userAgent);
 }
 
 function initVideo() {
-	var video_width = 640, video_height = 480
+	var video_width = 800, video_height = 600;
 	navigator.mediaDevices.enumerateDevices()
 		.then(function(devices) {
 			var devs = devices.filter(function(d) {
 				return d.kind == "videoinput";
 			});
-			// pop_message(JSON.stringify(devices));
+			// pop_debug_message(JSON.stringify(devices));
 			if (devs.length == 0) {
 				pop_message("No camera not found.");
 				return;
 			}
-			// pop_message(JSON.stringify(devs));
+			// pop_debug_message(JSON.stringify(devs));
 			devs.forEach(function(dev) {
 				var video_facingMode = "environment";
-				if (dev.label.toLowerCase().search("front") > -1) {
+				if (dev.label.toLowerCase().indexOf("front") > -1) {
 					video_facingMode = "user";
+				}
+				if (!is_iphone_ipad() && dev.label.toLowerCase().indexOf("back") == -1) {
+					return;
 				}
 
 				navigator.mediaDevices.getUserMedia({
@@ -116,27 +128,49 @@ function initVideo() {
 
 					setInterval(function snapshot() {
 						if (!video.ended) {
+							var date = new Date();
 							context.drawImage(video, 0, 0);
 							var data = canvas.toDataURL("image/jpeg", 0.5);
-							img.setAttribute("src", data);
-							pop_message(data);
+							snapshots.push({ image: data,
+								time: date_local_string(date) });
+							// img.setAttribute("src", data);
 						}
 					}, 1000);
 				}).catch(function(e) {
-					pop_message(e.name + ": " + e.message);
+					pop_message("devs.forEach " + e.name + ": " + e.message);
 				});
 			});
 		}).catch(function(e) {
-			pop_message(e.name + ": " + e.message);
+			pop_debug_message("device enumerate: " + e.name + ": " + e.message);
 		});
 }
 
+var ori_cnt_sent = 0, mot_cnt_sent = 0, geo_cnt_sent = 0, snap_cnt_sent = 0;
 function pushToServer() {
 	var ori = orientations.splice(0, orientations.length);
 	var mot = motions.splice(0, motions.length);
 	var geo = geolocations.splice(0, geolocations.length);
 	var data = { orientations: ori, motions: mot, geolocations: geo};
-	$.post('/recorder', JSON.stringify(data));
+	var snap = snapshots.splice(0, snapshots.length);
+	data.snapshots = snap;
+	$.post('/recorder', JSON.stringify(data))
+		.done(function(data){
+			ori_cnt_sent += ori.length;
+			mot_cnt_sent += mot.length;
+			geo_cnt_sent += geo.length;
+			snap_cnt_sent += snap.length;
+			pop_message("<br/>Sent: " + JSON.stringify({
+				ori_cnt: ori.length, mot_cnt: mot.length,
+				geo_cnt: geo.length, snap_cnt: snap.length }) + "<br/>" +
+				"Done: " + data + "<br/>" +
+				"sent/left/sent_acc/all: <br/>" +
+				"<blockquote>" +
+				"orientation: " + ori.length + "/" + orientations.length + "/" + ori_cnt_sent + "/" + (ori_cnt_sent + orientations.length) + "<br/>" +
+				"motion: " + mot.length + "/" + motions.length + "/" + mot_cnt_sent + "/" + (mot_cnt_sent + motions.length) +  "<br/>" +
+				"geolocation: " + geo.length + "/" + geolocations.length + "/" + geo_cnt_sent + "/" + (geo_cnt_sent + geolocations.length) + "<br/>" +
+				"snapshot: " + snap.length + "/" + snapshots.length + "/" + snap_cnt_sent + "/" + (snap_cnt_sent + snapshots.length) + "<br/>" +
+				"</blockquote>");
+		});
 }
 
 $(function() {
@@ -155,5 +189,6 @@ $(function() {
 	}
 
 	initVideo();
+	$("#uuid").html("UUID: " + Cookies.get("uuid"));
 	$("#start_recording").button().click(pushToServer);
 });
