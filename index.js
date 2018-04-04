@@ -5,10 +5,11 @@ var express = require("express");
 var app = express();
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
+var config = require("./config.json");
 
 var credentials = {
-  key: fs.readFileSync(__dirname + '/.ssl/private.key'),
-  cert: fs.readFileSync(__dirname + '/.ssl/certificate.crt')
+  key: fs.readFileSync(config.ssl_key),
+  cert: fs.readFileSync(config.ssl_cert)
 };
 
 var httpsServer = https.createServer(credentials, app);
@@ -36,6 +37,6 @@ app.use("/", express.static(__dirname + '/html'));
 app.get('/test', tests.test);
 app.post('/recorder', records.recorder);
 
-httpsServer.listen(8443, function() {
-	console.log("https listening 0.0.0.0:8443");
+httpsServer.listen(config.port_number, function() {
+	console.log("https listening 0.0.0.0:" + config.port_number);
 });

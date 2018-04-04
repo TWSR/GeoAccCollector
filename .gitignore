@@ -1,4 +1,5 @@
 .ssl
 node_modules
 *.log
-
+*.pid
+package-lock.json
