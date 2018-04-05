@@ -105,11 +105,11 @@ function initVideo() {
 					video_facingMode = "user";
 				}
 				// not iphone/ipad, use back camera
-				if (!is_iphone_ipad() && dev.label.toLowerCase().indexOf("back") == -1) {
+				if (!is_iphone_ipad() && dev.label != "" && dev.label.toLowerCase().indexOf("back") == -1) {
 					return;
 				}
-				// just use one camera in iphone/ipad
-				if (is_iphone_ipad() && devs.indexOf(dev) > 0) {
+				// just use one camera in iphone/ipad, if dev.label is empty, use one camera, too
+				if ((is_iphone_ipad() || dev.label == "") && devs.indexOf(dev) > 0) {
 					return;
 				}
 
@@ -120,7 +120,7 @@ function initVideo() {
 						facingMode: video_facingMode, width: video_width, height: video_height
 					}
 				};
-				if (is_iphone_ipad()) {
+				if (is_iphone_ipad() || dev.label == "") {
 					constraints = {
 						audio: false,
 						/* facingMode: environment for back, user for front */
