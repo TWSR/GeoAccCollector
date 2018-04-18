@@ -230,5 +230,8 @@ $(function() {
 
 	initVideo();
 	$("#uuid").html("UUID: " + Cookies.get("uuid"));
+	setInterval(function() {
+		$("#uuid").html("UUID: " + Cookies.get("uuid"));
+	}, 300000);
 	$("#start_recording").button().click(start_recording_click);
 });

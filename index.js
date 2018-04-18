@@ -23,8 +23,9 @@ app.use(cookieParser());
 app.use(function(req, res, next) {
 	var uuid = req.cookies.uuid;
 	if (!uuid) {
-		res.cookie('uuid', utils.uuid_get('00:01:02:03:04:05'), { maxAge: 900000 });
+		uuid = utils.uuid_get('00:01:02:03:04:05');
 	}
+	res.cookie('uuid', uuid, { maxAge: 86400000 /* one day */ });
 	next();
 });
 
