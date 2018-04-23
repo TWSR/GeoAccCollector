@@ -1,0 +1,27 @@
+html, body { margin: 0, border: 0, padding: 0}
+#start_recording {
+	position: absolute;
+	left: 10px;
+	top: 10px
+}
+#message {
+	position: absolute;
+	left: 10px;
+	top: 60px;
+	width: 780px;
+	font-size: 70%;
+	background-color: rgba(255, 255, 255, 0.5)
+}
+#uuid {
+	position: absolute;
+	left: 200px;
+	top: 20px;
+	padding: 5px;
+	background-color: rgba(255, 255, 255, 0.8)
+}
+
+h5 { display: none }
+#orient, #motion, #geolocation { display: none }
+
+video { position: absolute; left: -9999px }
+

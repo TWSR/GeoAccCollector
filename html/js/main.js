@@ -151,6 +151,7 @@ function initVideo() {
 					setInterval(function snapshot() {
 						if (!video.ended) {
 							var date = new Date();
+							context.clearRect(0, 0, canvas.width, canvas.height);
 							context.drawImage(video, 0, 0);
 							var data = canvas.toDataURL("image/jpeg", 0.5);
 							snapshots.push({ image: data,
