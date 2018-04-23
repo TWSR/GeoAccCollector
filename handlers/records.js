@@ -1,13 +1,36 @@
 var fs = require("fs");
+var date = require("../lib/date");
 
 exports.recorder = recorder;
 
 function recorder(req, res) {
+	var time_to_break = 15 * 60 * 1000;
 	var uuid = req.cookies.uuid;
 	var body = "";
 	if (!fs.existsSync("./data")) {
 		fs.mkdirSync("./data");
 	}
+
+	var ts_file = "./data/timestamp-" + uuid + ".txt";
+	var now = new Date();
+	var ts = now.toUTCString();
+
+	if (fs.existsSync(ts_file)) {
+		var ts_old = fs.readFileSync(ts_file);
+		var t_old = Date.parse(ts_old);
+		var t = Date.parse(ts);
+		if ((t - t_old) <= time_to_break) {
+			ts = ts_old;
+		}
+		else {
+			fs.writeFileSync(ts_file, ts);
+		}
+	}
+	else {
+		fs.writeFileSync(ts_file, ts);
+	}
+
+	var ts_string = new Date(Date.parse(ts)).toISOString().replace(/:/g, "_");
 
 	req.on("data", function(data) {
 		body += data;
@@ -16,10 +39,10 @@ function recorder(req, res) {
 	req.on("end", function() {
 		var data = JSON.parse(body);
 
-		var orientation_file = "./data/" + "orientation-" + uuid + ".json";
-		var motion_file = "./data/" + "motion-" + uuid + ".json";
-		var geolocation_file = "./data/" + "geolocation-" + uuid + ".json";
-		var snapshot_file = "./data/" + "snapshot-" + uuid + ".json";
+		var orientation_file = "./data/" + "orientation-" + uuid + "_" + ts_string + ".json";
+		var motion_file = "./data/" + "motion-" + uuid + "_" + ts_string + ".json";
+		var geolocation_file = "./data/" + "geolocation-" + uuid + "_" + ts_string + ".json";
+		var snapshot_file = "./data/" + "snapshot-" + uuid + "_" + ts_string + ".json";
 		var ori_count = 0, mot_count = 0, geo_count = 0, snap_count = 0;
 
 		var orientation_string = "";
