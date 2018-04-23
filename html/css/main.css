@@ -1,16 +1,26 @@
-html, body { margin: 0, border: 0, padding: 0}
+html, body { margin: 0; border: 0; padding: 0; width: 100%; height: 100% }
 #start_recording {
 	position: absolute;
 	left: 10px;
-	top: 10px
+	top: 10px;
+	z-index: 9999;
 }
 #message {
 	position: absolute;
 	left: 10px;
 	top: 60px;
-	width: 780px;
-	font-size: 70%;
+	width: 600px;
+	padding: 5px;
+	z-index: 9998;
 	background-color: rgba(255, 255, 255, 0.5)
+}
+#drawer1 {
+	position: absolute;
+	left: -9999px;
+	top: 0px;
+}
+#drawer2 {
+		position: absolute; width: 100%; height: 100%; margin: 0; padding: 0; left: 0; top: 0
 }
 #uuid {
 	position: absolute;

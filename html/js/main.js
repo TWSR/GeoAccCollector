@@ -131,7 +131,9 @@ function initVideo() {
 					var deviceIndex = devs.indexOf(dev) + 1;
 					var video = document.getElementById("camera" + deviceIndex);
 					var canvas = document.getElementById("drawer" + deviceIndex);
+					var canvas2 = document.getElementById("drawer2");
 					var context = canvas.getContext("2d");
+					var context2 = canvas2.getContext("2d");
 					var img = document.getElementById("snapshot" + deviceIndex);
 					video.setAttribute("width", video_width);
 					video.setAttribute("height", video_height);
@@ -146,6 +148,8 @@ function initVideo() {
 					}
 					canvas.setAttribute("width", video_width);
 					canvas.setAttribute("height", video_height);
+					canvas2.setAttribute("width", window.innerWidth);
+					canvas2.setAttribute("height", window.innerHeight);
 					video.play();
 
 					setInterval(function snapshot() {
@@ -153,6 +157,8 @@ function initVideo() {
 							var date = new Date();
 							context.clearRect(0, 0, canvas.width, canvas.height);
 							context.drawImage(video, 0, 0);
+							context2.clearRect(0, 0, canvas2.width, canvas2.height);
+							context2.drawImage(video, 0, 0);
 							var data = canvas.toDataURL("image/jpeg", 0.5);
 							snapshots.push({ image: data,
 								time: date_local_string(date) });
