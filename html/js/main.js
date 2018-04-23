@@ -158,7 +158,7 @@ function initVideo() {
 							context.clearRect(0, 0, canvas.width, canvas.height);
 							context.drawImage(video, 0, 0);
 							context2.clearRect(0, 0, canvas2.width, canvas2.height);
-							context2.drawImage(video, 0, 0);
+							context2.drawImage(video, 0, 0, window.innerWidth, window.innerHeight);
 							var data = canvas.toDataURL("image/jpeg", 0.5);
 							snapshots.push({ image: data,
 								time: date_local_string(date) });
