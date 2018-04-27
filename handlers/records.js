@@ -1,17 +1,31 @@
 var fs = require("fs");
 var date = require("../lib/date");
 
-exports.recorder = recorder;
+
+var datafolder = "./data";
+exports = module.exports = (function() {
+	return {
+		recorder: recorder,
+		data_folder: data_folder
+	};
+}) ();
+
+function data_folder(folder) {
+	if (!!folder && fs.existsSync(folder)) {
+		datafolder = folder;
+	}
+	return datafolder;
+}
 
 function recorder(req, res) {
 	var time_to_break = 15 * 60 * 1000;
 	var uuid = req.cookies.uuid;
 	var body = "";
-	if (!fs.existsSync("./data")) {
-		fs.mkdirSync("./data");
+	if (!fs.existsSync(datafolder)) {
+		fs.mkdirSync(datafolder);
 	}
 
-	var ts_file = "./data/timestamp-" + uuid + ".txt";
+	var ts_file = datafolder + "/timestamp-" + uuid + ".txt";
 	var now = new Date();
 	var ts = now.toUTCString();
 
@@ -39,10 +53,10 @@ function recorder(req, res) {
 	req.on("end", function() {
 		var data = JSON.parse(body);
 
-		var orientation_file = "./data/" + "orientation-" + uuid + "_" + ts_string + ".json";
-		var motion_file = "./data/" + "motion-" + uuid + "_" + ts_string + ".json";
-		var geolocation_file = "./data/" + "geolocation-" + uuid + "_" + ts_string + ".json";
-		var snapshot_file = "./data/" + "snapshot-" + uuid + "_" + ts_string + ".json";
+		var orientation_file = datafolder + "/" + "orientation-" + uuid + "_" + ts_string + ".json";
+		var motion_file = datafolder +"/" + "motion-" + uuid + "_" + ts_string + ".json";
+		var geolocation_file = datafolder + "/" + "geolocation-" + uuid + "_" + ts_string + ".json";
+		var snapshot_file = datafolder + "/" + "snapshot-" + uuid + "_" + ts_string + ".json";
 		var ori_count = 0, mot_count = 0, geo_count = 0, snap_count = 0;
 
 		var orientation_string = "";
