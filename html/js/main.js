@@ -81,7 +81,7 @@ function handleGeolocation(position) {
 		heading: position.coords.heading,
 		speed: position.coords.speed,
 		time: date_local_string(date) };
-	if (filters && filters.mot_filter(mot) === false) return;
+	if (filters && filters.geo_filter(geo) === false) return;
 	geolocations.push(geo);
 }
 
