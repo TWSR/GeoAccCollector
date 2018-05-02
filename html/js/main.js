@@ -13,6 +13,10 @@ var ori_count = 0, mot_count = 0, geo_count = 0;
 var orientations = [], motions = [], geolocations = [];
 var snapshots = [];
 
+if (typeof twsr_filters === "function") {
+	var filters = new twsr_filters();
+}
+
 function handleOrientation(event) {
 	var date = new Date();
 	ori_count ++;
@@ -23,7 +27,9 @@ function handleOrientation(event) {
 		"time: "  + date_local_string(date)  + "<br/>" +
 		"count: " + ori_count + "<br/>" +
 		"data rate: "    + (ori_count / ((date - ori_date) / 1000))  + "<br/>");
-	orientations.push({ alpha: event.alpha, beta: event.beta, gamma: event.gamma, time: date_local_string(date) });
+	var ori = { alpha: event.alpha, beta: event.beta, gamma: event.gamma, time: date_local_string(date) };
+	if (filters && filters.ori_filter(ori) === false) return;
+	orientations.push(ori);
 }
 
 function handleMotion(event) {
@@ -39,14 +45,16 @@ function handleMotion(event) {
 		"time: "      + date_local_string(date)  + "<br/>" +
 		"count: "     + mot_count + "<br/>" +
 		"data rate: " + (mot_count / ((date - mot_date) / 1000))  + "<br/>");
-	motions.push({
-		gacc_x: event.accelerationIncludingGravity.x,
-		gacc_y: event.accelerationIncludingGravity.y,
-		gacc_z: event.accelerationIncludingGravity.z,
-		acc_x: event.acceleration.x,
-		acc_y: event.acceleration.y,
-		acc_z: event.acceleration.z,
-		time: date_local_string(date) });
+	var mot = {
+                gacc_x: event.accelerationIncludingGravity.x,
+                gacc_y: event.accelerationIncludingGravity.y,
+                gacc_z: event.accelerationIncludingGravity.z,
+                acc_x: event.acceleration.x,
+                acc_y: event.acceleration.y,
+                acc_z: event.acceleration.z,
+                time: date_local_string(date) };
+	if (filters && filters.mot_filter(mot) === false) return;
+	motions.push(mot);
 }
 
 function handleGeolocation(position) {
@@ -63,7 +71,8 @@ function handleGeolocation(position) {
 		"time: "             + date_local_string(date)  + "<br/>" +
 		"count: "            + geo_count + "<br/>" +
 		"data rate: "        + (geo_count / ((date - geo_date) / 1000) )  + "<br/>");
-	geolocations.push({
+
+	var geo = {
 		latitude: position.coords.latitude,
 		longitude: position.coords.longitude,
 		altitude: position.coords.altitude,
@@ -71,7 +80,9 @@ function handleGeolocation(position) {
 		altitudeAccuracy: position.coords.altitudeAccuracy,
 		heading: position.coords.heading,
 		speed: position.coords.speed,
-		time: date_local_string(date) });
+		time: date_local_string(date) };
+	if (filters && filters.mot_filter(mot) === false) return;
+	geolocations.push(geo);
 }
 
 function pop_message(message) {
