@@ -36,3 +36,6 @@ h5 { display: none }
 
 video { position: absolute; left: -9999px }
 
+.no-close .ui-dialog-titlebar-close {
+	display: none
+}

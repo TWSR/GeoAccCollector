@@ -12,12 +12,34 @@ var ori_date = new Date(), mot_date = new Date(), geo_date = new Date();
 var ori_count = 0, mot_count = 0, geo_count = 0;
 var orientations = [], motions = [], geolocations = [];
 var snapshots = [];
+var max_timestamp = 60000, timestamps = { ori: ori_date, mot: mot_date, geo: geo_date };
 
 if (typeof twsr_filters === "function") {
 	var filters = new twsr_filters();
 }
 
+var timeout_reload_timer = 0;
+function timeout_reload() {
+	var date = new Date();
+	if ((date - timestamps.ori) > max_timestamp ||
+		(date - timestamps.mot) > max_timestamp ||
+		(date - timestamps.geo) > max_timestamp) {
+		var dialog = $("<div class='dialog' title='Error Reload'><p>You must allow geolocation and camera for this webapp!!</p></div>").dialog({
+			modal: true,
+			dialogClass: "no-close",
+			buttons: {
+				"OK": function() {
+					self.location.reload();
+				}
+			}
+		})
+		return false;
+	}
+	return true;
+}
+
 function handleOrientation(event) {
+	if ($("#start_recording").val() === "Start Recording") return;
 	var date = new Date();
 	ori_count ++;
 	$("#orient").html(
@@ -29,10 +51,12 @@ function handleOrientation(event) {
 		"data rate: "    + (ori_count / ((date - ori_date) / 1000))  + "<br/>");
 	var ori = { alpha: event.alpha, beta: event.beta, gamma: event.gamma, time: date_local_string(date) };
 	if (filters && filters.ori_filter(ori) === false) return;
+	timestamps.ori = date;
 	orientations.push(ori);
 }
 
 function handleMotion(event) {
+	if ($("#start_recording").val() === "Start Recording") return;
 	var date = new Date();
 	mot_count ++;
 	$("#motion").html(
@@ -54,10 +78,12 @@ function handleMotion(event) {
                 acc_z: event.acceleration.z,
                 time: date_local_string(date) };
 	if (filters && filters.mot_filter(mot) === false) return;
+	timestamps.mot = date;
 	motions.push(mot);
 }
 
 function handleGeolocation(position) {
+	if ($("#start_recording").val() === "Start Recording") return;
 	var date = new Date();
 	geo_count ++;
 	$("#geolocation").html(
@@ -82,6 +108,7 @@ function handleGeolocation(position) {
 		speed: position.coords.speed,
 		time: date_local_string(date) };
 	if (filters && filters.geo_filter(geo) === false) return;
+	timestamps.geo = date;
 	geolocations.push(geo);
 }
 
@@ -164,13 +191,15 @@ function initVideo() {
 					video.play();
 
 					setInterval(function snapshot() {
+
 						if (!video.ended) {
 							var date = new Date();
 							context.clearRect(0, 0, canvas.width, canvas.height);
 							context.drawImage(video, 0, 0);
 							context2.clearRect(0, 0, canvas2.width, canvas2.height);
 							context2.drawImage(video, 0, 0, window.innerWidth, window.innerHeight);
-							var data = canvas.toDataURL("image/jpeg", 0.5);
+							var data = canvas.toDataURL("image/jpeg", 0.75);
+							if ($("#start_recording").val() === "Start Recording") return;
 							snapshots.push({ image: data,
 								time: date_local_string(date) });
 							// disable base64 image src for better performance
@@ -218,6 +247,11 @@ function pushToServer() {
 function start_recording_click() {
 	if ($("#start_recording").val() == "Start Recording") {
 		$("#start_recording").val("Stop Recording");
+		var date = new Date();
+		timestamps.ori = date;
+		timestamps.mot = date;
+		timestamps.geo = date;
+		timeout_reload_timer = setInterval(timeout_reload, 1000);
 
 		(function loop_push() {
 			pushToServer();
@@ -228,7 +262,50 @@ function start_recording_click() {
 	}
 	else {
 		$("#start_recording").val("Start Recording");
+		clearInterval(timeout_reload_timer);
 	}
+}
+
+function initDialog() {
+	function confirmMeta() {
+		var name = $("#name").val();
+		var vehicle = $("#vehicle").val();
+		if (name === "" || name === "Anon") {
+			$("#validate-tips").addClass("ui-state-highlight");
+			setTimeout(function() { $("#validate-tips").removeClass("ui-state-highlight") }, 1000);
+		}
+		else {
+			Cookies.set("name", $("#name").val(), { expires: 30 });
+			Cookies.set("vehicle", $("#vehicle").val(), { expires: 30 });
+			dialog.dialog("close");
+			update_uuid();
+			setInterval(update_uuid, 300000);
+		}
+	}
+
+	var dialog = $("#meta-form").dialog({
+		modal: true,
+		dialogClass: "no-close",
+		buttons: {
+			"OK": confirmMeta
+		}
+	});
+	dialog.find("form").on("submit", function(event) {
+		event.preventDefault();
+		confirmMeta();
+	});
+	$("#vehicle").find("option").remove().end();
+	$("#vehicle").append("<option>car</option><option>bus</option>");
+	$("#vehicle").selectmenu();
+	dialog.dialog("open");
+}
+
+function update_uuid() {
+	$("#uuid").html(
+		"UUID: " + Cookies.get("uuid") + "<br/>" +
+		"Name: " + Cookies.get("name") + "&nbsp;&nbsp;&nbsp;&nbsp;" +
+		"Vehicle: " + Cookies.get("vehicle")
+	);
 }
 
 $(function() {
@@ -247,9 +324,6 @@ $(function() {
 	}
 
 	initVideo();
-	$("#uuid").html("UUID: " + Cookies.get("uuid"));
-	setInterval(function() {
-		$("#uuid").html("UUID: " + Cookies.get("uuid"));
-	}, 300000);
 	$("#start_recording").button().click(start_recording_click);
+	initDialog();
 });

@@ -33,6 +33,19 @@
   <div><img id="snapshot1" /><img id="snapshot2" /></div>
   <h5>Debug Messages</h5>
   <div id="debug_message"></div>
+  <div id="meta-form" title="Show yourself" style="display:none">
+    <p id="validate-tips">Enter your name and vehicle type</p>
+    <form>
+      <fieldset>
+        <label for="name">Name:</label>
+        <input type="text" name="name" id="name" value="Anon" class="text ui-widget ui-corner-all"/>
+        <label>Vehicle type:</label>
+        <select name="vehicle" id="vehicle">
+          <option>car</option>
+        </select>
+      </fieldset>
+    </form>
+  </div>
   <script type="text/javascript" src="js/jquery-ui-1.11.4/external/jquery/jquery.js"></script>
   <script type="text/javascript" src="js/jquery-ui-1.11.4/jquery-ui.min.js"></script>
   <script type="text/javascript" src="js/jscookie.js"></script>

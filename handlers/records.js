@@ -20,6 +20,8 @@ function data_folder(folder) {
 function recorder(req, res) {
 	var time_to_break = 15 * 60 * 1000;
 	var uuid = req.cookies.uuid;
+	var name = req.cookies.name;
+	var vehicle = req.cookies.vehicle;
 	var body = "";
 	if (!fs.existsSync(datafolder)) {
 		fs.mkdirSync(datafolder);
@@ -53,10 +55,10 @@ function recorder(req, res) {
 	req.on("end", function() {
 		var data = JSON.parse(body);
 
-		var orientation_file = datafolder + "/" + "orientation-" + uuid + "_" + ts_string + ".json";
-		var motion_file = datafolder +"/" + "motion-" + uuid + "_" + ts_string + ".json";
-		var geolocation_file = datafolder + "/" + "geolocation-" + uuid + "_" + ts_string + ".json";
-		var snapshot_file = datafolder + "/" + "snapshot-" + uuid + "_" + ts_string + ".json";
+		var orientation_file = datafolder + "/" + "orientation-" + uuid + "_" + name + "_" + vehicle + "_" + ts_string + ".json";
+		var motion_file = datafolder +"/" + "motion-" + uuid + "_" + name + "_" + vehicle + "_" + ts_string + ".json";
+		var geolocation_file = datafolder + "/" + "geolocation-" + uuid + "_" + name + "_" + vehicle + "_" + ts_string + ".json";
+		var snapshot_file = datafolder + "/" + "snapshot-" + uuid + "_" + name + "_" + vehicle + "_" + ts_string + ".json";
 		var ori_count = 0, mot_count = 0, geo_count = 0, snap_count = 0;
 
 		var orientation_string = "";
