@@ -24,17 +24,18 @@ function twsr_filters() {
 
 	this.postSomeThing = function () {
 
-		$.ajax({
-			type: 'post',
-			url: '/insertDB',
-			data: { time: new Date() },								
-			success: function (data) {
+		$.post('/insertDB', JSON.stringify({ time: new Date() }))
+		// $.ajax({
+		// 	type: 'post',
+		// 	url: '/insertDB',
+		// 	data: { time: new Date() },								
+		// 	success: function (data) {
 				
-			},
-			error: function (jqXHR, textStatus, errorThrown) {
-				alert('error: ' + errorThrown);
-			}
-		})
+		// 	},
+		// 	error: function (jqXHR, textStatus, errorThrown) {
+		// 		alert('error: ' + errorThrown);
+		// 	}
+		// })
 	}
 
 	return this;

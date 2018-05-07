@@ -133,16 +133,27 @@ function recorder(req, res) {
 
 
 function insertDB(req, res) {
-	let postData = req.body
-	Road.create(postData)
-		.then(addedRecord => {
-			res.status(200).send('ok')
-		})
-		.catch(err => {
-			res.status(500).json({
-				error: 'Insert data fail'
+
+	let body = ''
+	req.on("data", function (data) {
+		body += data;
+	})
+
+	req.on("end", function () {
+		let postData = JSON.parse(body)
+		Road.create(postData)
+			.then(addedRecord => {
+				res.status(200).send('ok')
 			})
-		})
+			.catch(err => {
+				res.status(500).json({
+					error: 'Insert data fail'
+				})
+			})
+	})
+
+	// var data = JSON.parse(body);
+	
 	
 }
 
