@@ -22,6 +22,21 @@ function twsr_filters() {
 		return true;
 	}
 
+	this.postSomeThing = function () {
+
+		$.ajax({
+			type: 'post',
+			url: '/insertDB',
+			data: { time: new Date() },								
+			success: function (data) {
+				
+			},
+			error: function (jqXHR, textStatus, errorThrown) {
+				alert('error: ' + errorThrown);
+			}
+		})
+	}
+
 	return this;
 }
 

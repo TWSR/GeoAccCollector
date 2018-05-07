@@ -1,12 +1,22 @@
 var fs = require("fs");
 var date = require("../lib/date");
 
+var Sequelize = require('Sequelize');
+var db_conn = require('../config/db');
+const sequelize = new Sequelize(db_conn.connectInfo.database, db_conn.connectInfo.user, db_conn.connectInfo.password, {
+	host: db_conn.connectInfo.host,
+	dialect: 'mysql',
+	define: { timestamps: false },
+	logging: false
+});
+const Road = sequelize.import("../models/roadtest")
 
 var datafolder = "./data";
 exports = module.exports = (function() {
 	return {
 		recorder: recorder,
-		data_folder: data_folder
+		data_folder: data_folder,
+		insertDB: insertDB
 	};
 }) ();
 
@@ -117,5 +127,22 @@ function recorder(req, res) {
 		res.send(JSON.stringify(response));
 	});
 
+	
+
+}
+
+
+function insertDB(req, res) {
+	let postData = req.body
+	Road.create(postData)
+		.then(addedRecord => {
+			res.status(200).send('ok')
+		})
+		.catch(err => {
+			res.status(500).json({
+				error: 'Insert data fail'
+			})
+		})
+	
 }
 

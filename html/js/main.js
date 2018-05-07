@@ -326,4 +326,7 @@ $(function() {
 	initVideo();
 	$("#start_recording").button().click(start_recording_click);
 	initDialog();
+
+	//filters.postSomeThing()
+
 });
