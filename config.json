@@ -1,5 +1,5 @@
 {
-    "port_number": 3512,
+    "port_number": 7043,
     "ssl_key": "./.ssl/private.key",
     "ssl_cert": "./.ssl/certificate.crt",
     "data_folder": "/home/sftpuser2/gac_data"
