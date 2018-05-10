@@ -274,6 +274,7 @@ function initDialog() {
 		if (name === "" || name === "Anon") {
 			$("#validate-tips").addClass("ui-state-highlight");
 			setTimeout(function() { $("#validate-tips").removeClass("ui-state-highlight") }, 1000);
+			return;
 		}
 		else {
 			Cookies.set("name", name, { expires: 30 });
@@ -301,7 +302,7 @@ function initDialog() {
 		confirmMeta();
 	});
 	$("#vehicle").find("option").remove().end();
-	$("#vehicle").append("<option>car</option><option>bus</option>");
+	$("#vehicle").append("<option>car</option><option>bus</option><option>moto</option><option>bike</option><option>MRT</option><option>train</option><option>others</option>");
 	$("#vehicle").selectmenu({ width: "auto" });
 	dialog.dialog("open");
 }
