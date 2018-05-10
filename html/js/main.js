@@ -270,20 +270,26 @@ function initDialog() {
 	function confirmMeta() {
 		var name = $("#name").val();
 		var vehicle = $("#vehicle").val();
+		var allow_camera = $("#allow_camera :radio:checked").val();
 		if (name === "" || name === "Anon") {
 			$("#validate-tips").addClass("ui-state-highlight");
 			setTimeout(function() { $("#validate-tips").removeClass("ui-state-highlight") }, 1000);
 		}
 		else {
-			Cookies.set("name", $("#name").val(), { expires: 30 });
-			Cookies.set("vehicle", $("#vehicle").val(), { expires: 30 });
+			Cookies.set("name", name, { expires: 30 });
+			Cookies.set("vehicle", vehicle, { expires: 30 });
+			Cookies.set("allow_camera", allow_camera, { expires: 30 });
 			dialog.dialog("close");
 			update_uuid();
 			setInterval(update_uuid, 300000);
 		}
+		if (allow_camera === "yes") {
+			initVideo();
+		}
 	}
 
 	var dialog = $("#meta-form").dialog({
+		width: "auto",
 		modal: true,
 		dialogClass: "no-close",
 		buttons: {
@@ -296,7 +302,7 @@ function initDialog() {
 	});
 	$("#vehicle").find("option").remove().end();
 	$("#vehicle").append("<option>car</option><option>bus</option>");
-	$("#vehicle").selectmenu();
+	$("#vehicle").selectmenu({ width: "auto" });
 	dialog.dialog("open");
 }
 
@@ -304,7 +310,8 @@ function update_uuid() {
 	$("#uuid").html(
 		"UUID: " + Cookies.get("uuid") + "<br/>" +
 		"Name: " + Cookies.get("name") + "&nbsp;&nbsp;&nbsp;&nbsp;" +
-		"Vehicle: " + Cookies.get("vehicle")
+		"Vehicle: " + Cookies.get("vehicle") + "&nbsp;&nbsp;&nbsp;&nbsp;" +
+		"Camera: " + Cookies.get("allow_camera")
 	);
 }
 
@@ -323,7 +330,7 @@ $(function() {
 		navigator.geolocation.getCurrentPosition(handleGeolocation);
 	}
 
-	initVideo();
+	$("#allow_camera").buttonset();
 	$("#start_recording").button().click(start_recording_click);
 	initDialog();
 });
