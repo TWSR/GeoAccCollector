@@ -143,17 +143,17 @@ function insertDB(req, res) {
     })
 
     req.on("end", function() {
-        let postData = JSON.parse(body)
-        Road.create(postData)
-            .then(addedRecord => {
-                res.status(200).send('ok')
-            })
-            .catch(err => {
-                res.status(500).json({
-                    error: 'Insert data fail'
+            let postData = JSON.parse(body)
+            Road.create(postData)
+                .then(addedRecord => {
+                    res.status(200).send('ok')
                 })
-            })
-    })
-    res.send('done');
-    // var data = JSON.parse(body);
+                .catch(err => {
+                    res.status(500).json({
+                        error: 'Insert data fail'
+                    })
+                })
+        })
+        //res.send('done');
+        // var data = JSON.parse(body);
 }

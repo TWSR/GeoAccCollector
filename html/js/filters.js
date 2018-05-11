@@ -1,10 +1,12 @@
 function twsr_filters() {
     const time_interval = 5000;
+    const scale_dist = 6371 * 1000 * 2 * Math.PI / 360.0;
     var cache_length = 500;
     var ori_cache = [];
     var mot_cache = [];
     var geo_cache = [];
     var gacc_z = [];
+
 
     this.ori_filter = function(ori) {
         ori_cache.push(ori);
@@ -13,7 +15,7 @@ function twsr_filters() {
     }
 
     this.mot_filter = function(mot) {
-        //todo: rotate gacc_xyz
+        //todo: rotate gacc_xyz        
         if (ori_cache.length > 0) {
             var rotation_matrix = R_Matrix(ori_cache[ori_cache.length - 1].beta * Math.PI / 180.0,
                 ori_cache[ori_cache.length - 1].gamma * Math.PI / 180.0,
@@ -26,26 +28,33 @@ function twsr_filters() {
             mot_cache.splice(0, mot_cache.length - cache_length);
             if (Math.abs(new Date(mot_cache[mot_cache.length - 1].time) - new Date(mot_cache[0].time)) > time_interval) {
                 var geo_temp = geo_cache.filter(geo_ => new Date(geo_.time).getTime() > new Date(mot_cache[0].time).getTime() - 1000 && new Date(geo_.time).getTime() < new Date(mot_cache[mot_cache.length - 1].time).getTime());
-                //console.log('ori_temp:' + ori_temp.length + ', mot_length:' + mot_cache.length + ', geo_temp:' + geo_temp.length);
-                //todo:get std & filter some case  
-                if (geo_temp.length > 1) {
-                    var stdZ = standardDeviation(gacc_z);
-                    console.log(new Date(mot_cache[0].time).getTime());
-                    var pt_str = "MULTIPOINT("
-                    geo_temp.forEach(function(element) {
-                        pt_str += element.latitude + " " + element.longitude + ","
-                    });
+
+                if (geo_temp.length >= time_interval / 1000) {
+                    var dist_sum = 0;
+                    var pt_str = "LINESTRING("
+                    for (var i = 0; i < geo_temp.length; i++) {
+                        pt_str += geo_temp[i].latitude + " " + geo_temp[i].longitude + ","
+                        if (i != 0) {
+                            dist_sum += distFromlatlng(geo_temp[i - 1].latitude, geo_temp[i - 1].longitude, geo_temp[i].latitude, geo_temp[i].longitude);
+                        }
+                    }
                     pt_str = pt_str.substring(0, pt_str.length - 1) + ")";
-                    alert(pt_str)
-                        //console.log(pt_str)
-                    $.post('/insertDB', JSON.stringify({
-                        "time": mot_cache[0].time,
-                        "smooth_index": stdZ,
-                        "source": 'GeoAccCollector',
-                        "uuid": Cookies.get("uuid"),
-                        "remark": pt_str
-                            //"points": 'geomfromtext(' + pt_str + ')'
-                    }))
+
+                    if (dist_sum > 10 && dist_sum < 500) {
+                        var stdZ = standardDeviation(gacc_z);
+                        var latlng = "Point(" + geo_temp[parseInt(geo_temp.length / 2)].latitude.ToString() + " " + geo_temp[parseInt(geo_temp.length / 2)].longitude.ToString() + ")"
+                            //console.log(new Date(mot_cache[0].time).getTime());                    
+                        $.post('/insertDB', JSON.stringify({
+                            "time": mot_cache[0].time,
+                            "smooth_index": stdZ,
+                            "source": 'GeoAccCollector' + location.port,
+                            "points": pt_str,
+                            "latlng": latlng,
+                            "uuid": Cookies.get("uuid"),
+                            "vehicle_type": Cookies.get("vehicle"),
+                            "user": Cookies.get("name")
+                        }))
+                    }
                 }
                 mot_cache = [];
                 gacc_z = [];
@@ -146,4 +155,8 @@ function AdotB(A, B) {
     } else {
         throw new Exception("Wrong dimension in AdotB");
     }
+}
+
+function distFromlatlng(lat0, lng0, lat1, lng1) {
+    return Math.sqrt(Math.pow(lat0 - lat1, 2) + Math.pow(lng0 - lng1, 2)) * scale_dist;
 }
