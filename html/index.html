@@ -37,12 +37,23 @@
     <p id="validate-tips">Enter your name and vehicle type</p>
     <form>
       <fieldset>
-        <label for="name">Name:</label>
-        <input type="text" name="name" id="name" value="Anon" class="text ui-widget ui-corner-all"/>
-        <label>Vehicle type:</label>
-        <select name="vehicle" id="vehicle">
-          <option>car</option>
-        </select>
+        <div>
+          <label for="name">Name:</label>
+          <input type="text" name="name" id="name" value="Anon" class="text ui-widget ui-corner-all"/>
+        </div>
+        <div>
+          <label>Vehicle Type:</label>
+          <select name="vehicle" id="vehicle">
+            <option>car</option>
+          </select>
+        </div>
+	<div id="allow_camera">
+          <label>Allow Camera:</label>
+          <label for="allow_camera_yes">Yes</label>
+          <input type="radio" name="allow_camera" id="allow_camera_yes" checked="checked" value="yes" />
+          <label for="allow_camera_no">No</label>
+          <input type="radio" name="allow_camera" id="allow_camera_no" value="no" />
+	</div>
       </fieldset>
     </form>
   </div>
