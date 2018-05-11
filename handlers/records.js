@@ -1,7 +1,7 @@
 var fs = require("fs");
 var date = require("../lib/date");
 
-var Sequelize = require('Sequelize');
+var Sequelize = require('sequelize');
 var db_conn = require('../config/db');
 const sequelize = new Sequelize(db_conn.connectInfo.database, db_conn.connectInfo.user, db_conn.connectInfo.password, {
     host: db_conn.connectInfo.host,
