@@ -7,7 +7,8 @@ const sequelize = new Sequelize(db_conn.connectInfo.database, db_conn.connectInf
     host: db_conn.connectInfo.host,
     dialect: 'mysql',
     define: { timestamps: false },
-    logging: false
+    logging: false,
+    timezone: '+08:00'
 });
 const Road = sequelize.import("../models/road")
 

@@ -15,7 +15,8 @@ function twsr_filters() {
     }
 
     this.mot_filter = function(mot) {
-        //todo: rotate gacc_xyz            
+        //todo: rotate gacc_xyz       
+        console.log(mot.time)
         if (ori_cache.length > 0) {
             var rotation_matrix = R_Matrix(ori_cache[ori_cache.length - 1].beta * Math.PI / 180.0,
                 ori_cache[ori_cache.length - 1].gamma * Math.PI / 180.0,
@@ -30,30 +31,20 @@ function twsr_filters() {
                 var geo_temp = geo_cache.filter(geo_ => new Date(geo_.time).getTime() > new Date(mot_cache[0].time).getTime() - 1000 && new Date(geo_.time).getTime() < new Date(mot_cache[mot_cache.length - 1].time).getTime());
 
                 if (geo_temp.length >= time_interval / 1000) {
-                    //if (geo_temp.length >= 2) {
-
                     var dist_sum = 0;
                     var pt_str = '';
                     for (var i = 0; i < geo_temp.length; i++) {
                         pt_str += geo_temp[i].latitude + " " + geo_temp[i].longitude + ","
-                            //pt_str.coordinates.push([geo_temp[i].latitude, geo_temp[i].longitude]);
                         if (i != 0) {
                             dist_sum += this.distFromlatlng(geo_temp[i - 1].latitude, geo_temp[i - 1].longitude, geo_temp[i].latitude, geo_temp[i].longitude);
                         }
                     }
                     pt_str = pt_str.substring(0, pt_str.length - 1);
 
-                    //alert(dist_sum)
                     if (dist_sum > 10 && dist_sum < 500) {
                         var stdZ = standardDeviation(gacc_z);
-                        //var latlng = 'ST_PointFromText(Point(' + geo_temp[parseInt(geo_temp.length / 2)].latitude + ' ' + geo_temp[parseInt(geo_temp.length / 2)].longitude + '))'
-                        //var latlng = {};
-                        //latlng.ST_PointFromText = 'Point(' + geo_temp[parseInt(geo_temp.length / 2)].latitude + ' ' + geo_temp[parseInt(geo_temp.length / 2)].longitude + ')';                        
-                        //var latlng = { type: 'Point', coordinates: [geo_temp[parseInt(geo_temp.length / 2)].latitude, geo_temp[parseInt(geo_temp.length / 2)].longitude] };
                         var latlng = geo_temp[parseInt(geo_temp.length / 2)].latitude + ' ' + geo_temp[parseInt(geo_temp.length / 2)].longitude;
 
-
-                        //console.log(new Date(mot_cache[0].time).getTime());
                         $.post('/insertDB', JSON.stringify({
                             "time": mot_cache[0].time,
                             "smooth_index": stdZ,
