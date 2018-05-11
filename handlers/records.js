@@ -144,6 +144,14 @@ function insertDB(req, res) {
 
     req.on("end", function() {
             let postData = JSON.parse(body)
+            if (postData.points) {
+                postData.points = sequelize.fn('ST_GeomFromText', 'linestring(' + postData.points + ')')
+            }
+
+            if (postData.latlng) {
+                postData.latlng = sequelize.fn('ST_GeomFromText', 'point(' + postData.latlng + ')')
+            }
+
             Road.create(postData)
                 .then(addedRecord => {
                     res.status(200).send('ok')

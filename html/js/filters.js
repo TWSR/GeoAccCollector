@@ -15,40 +15,51 @@ function twsr_filters() {
     }
 
     this.mot_filter = function(mot) {
-        //todo: rotate gacc_xyz        
+        //todo: rotate gacc_xyz            
         if (ori_cache.length > 0) {
             var rotation_matrix = R_Matrix(ori_cache[ori_cache.length - 1].beta * Math.PI / 180.0,
                 ori_cache[ori_cache.length - 1].gamma * Math.PI / 180.0,
                 ori_cache[ori_cache.length - 1].alpha * Math.PI / 180.0);
             var z = mot.gacc_x * rotation_matrix[0][2] + mot.gacc_y * rotation_matrix[1][2] + mot.gacc_z * rotation_matrix[2][2]
             gacc_z.push(z);
-
             //console.log(z)
+
             mot_cache.push(mot);
             mot_cache.splice(0, mot_cache.length - cache_length);
             if (Math.abs(new Date(mot_cache[mot_cache.length - 1].time) - new Date(mot_cache[0].time)) > time_interval) {
                 var geo_temp = geo_cache.filter(geo_ => new Date(geo_.time).getTime() > new Date(mot_cache[0].time).getTime() - 1000 && new Date(geo_.time).getTime() < new Date(mot_cache[mot_cache.length - 1].time).getTime());
 
                 if (geo_temp.length >= time_interval / 1000) {
+                    //if (geo_temp.length >= 2) {
+
                     var dist_sum = 0;
-                    var pt_str = "LINESTRING("
+                    var pt_str = '';
                     for (var i = 0; i < geo_temp.length; i++) {
                         pt_str += geo_temp[i].latitude + " " + geo_temp[i].longitude + ","
+                            //pt_str.coordinates.push([geo_temp[i].latitude, geo_temp[i].longitude]);
                         if (i != 0) {
-                            dist_sum += distFromlatlng(geo_temp[i - 1].latitude, geo_temp[i - 1].longitude, geo_temp[i].latitude, geo_temp[i].longitude);
+                            dist_sum += this.distFromlatlng(geo_temp[i - 1].latitude, geo_temp[i - 1].longitude, geo_temp[i].latitude, geo_temp[i].longitude);
                         }
                     }
-                    pt_str = pt_str.substring(0, pt_str.length - 1) + ")";
+                    pt_str = pt_str.substring(0, pt_str.length - 1);
 
+                    //alert(dist_sum)
                     if (dist_sum > 10 && dist_sum < 500) {
                         var stdZ = standardDeviation(gacc_z);
-                        var latlng = "Point(" + geo_temp[parseInt(geo_temp.length / 2)].latitude.ToString() + " " + geo_temp[parseInt(geo_temp.length / 2)].longitude.ToString() + ")"
-                            //console.log(new Date(mot_cache[0].time).getTime());                    
+                        //var latlng = 'ST_PointFromText(Point(' + geo_temp[parseInt(geo_temp.length / 2)].latitude + ' ' + geo_temp[parseInt(geo_temp.length / 2)].longitude + '))'
+                        //var latlng = {};
+                        //latlng.ST_PointFromText = 'Point(' + geo_temp[parseInt(geo_temp.length / 2)].latitude + ' ' + geo_temp[parseInt(geo_temp.length / 2)].longitude + ')';                        
+                        //var latlng = { type: 'Point', coordinates: [geo_temp[parseInt(geo_temp.length / 2)].latitude, geo_temp[parseInt(geo_temp.length / 2)].longitude] };
+                        var latlng = geo_temp[parseInt(geo_temp.length / 2)].latitude + ' ' + geo_temp[parseInt(geo_temp.length / 2)].longitude;
+
+
+                        //console.log(new Date(mot_cache[0].time).getTime());
                         $.post('/insertDB', JSON.stringify({
                             "time": mot_cache[0].time,
                             "smooth_index": stdZ,
                             "source": 'GeoAccCollector' + location.port,
                             "points": pt_str,
+                            //"remark": pt_str,
                             "latlng": latlng,
                             "uuid": Cookies.get("uuid"),
                             "vehicle_type": Cookies.get("vehicle"),
@@ -81,6 +92,9 @@ function twsr_filters() {
         // 		alert('error: ' + errorThrown);
         // 	}
         // })
+    }
+    this.distFromlatlng = function(lat0, lng0, lat1, lng1) {
+        return Math.sqrt(Math.pow(lat0 - lat1, 2) + Math.pow(lng0 - lng1, 2)) * scale_dist;
     }
 
     return this;
@@ -155,8 +169,4 @@ function AdotB(A, B) {
     } else {
         throw new Exception("Wrong dimension in AdotB");
     }
-}
-
-function distFromlatlng(lat0, lng0, lat1, lng1) {
-    return Math.sqrt(Math.pow(lat0 - lat1, 2) + Math.pow(lng0 - lng1, 2)) * scale_dist;
 }
