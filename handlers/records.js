@@ -17,7 +17,8 @@ exports = module.exports = (function() {
     return {
         recorder: recorder,
         data_folder: data_folder,
-        insertDB: insertDB
+        insertDB: insertDB,
+        filterDB: filterDB
     };
 })();
 
@@ -135,7 +136,6 @@ function recorder(req, res) {
     });
 }
 
-
 function insertDB(req, res) {
 
     let body = ''
@@ -144,25 +144,81 @@ function insertDB(req, res) {
     })
 
     req.on("end", function() {
-            let postData = JSON.parse(body)
-            if (postData.points) {
-                postData.points = sequelize.fn('ST_GeomFromText', 'linestring(' + postData.points + ')')
-            }
+        let postData = JSON.parse(body)
+        if (postData.points) {
+            postData.points = sequelize.fn('ST_GeomFromText', 'linestring(' + postData.points + ')')
+        }
 
-            if (postData.latlng) {
-                postData.latlng = sequelize.fn('ST_GeomFromText', 'point(' + postData.latlng + ')')
-            }
+        if (postData.latlng) {
+            postData.latlng = sequelize.fn('ST_GeomFromText', 'point(' + postData.latlng + ')')
+        }
 
-            Road.create(postData)
-                .then(addedRecord => {
-                    res.status(200).send('ok')
+        Road.create(postData)
+            .then(addedRecord => {
+                res.status(200).send('ok')
+            })
+            .catch(err => {
+                res.status(500).json({
+                    error: 'Insert data fail'
                 })
-                .catch(err => {
-                    res.status(500).json({
-                        error: 'Insert data fail'
+            })
+    })
+}
+
+function filterDB(req, res) {
+    console.log('filterDB' + new Date());
+
+    //query uuid where filter_std_all = 0
+    //uuid foreach select where filter_std_all = 0
+    //      if last time - now < 5 min skip
+    //      else
+    //          split section and count std_all
+    //          update smooth_index
+    Road.findAll({
+        where: {
+            filter_std_all: 0,
+        },
+        attributes: [
+            [sequelize.literal('distinct `uuid`'), 'uuid']
+        ]
+    }).then(function(uuid) {
+        uuid.forEach(data => {
+            console.log(data.uuid);
+            Road.findAll({
+                where: {
+                    filter_std_all: 0,
+                    uuid: data.uuid
+                },
+                order: [
+                    ['time', 'DESC']
+                ],
+                attributes: [
+                    'id', 'time', 'smooth_index', 'uuid'
+                ]
+            }).then(function(data) {
+                console.log(data.length);
+                var minuteago = (new Date().getTime() - new Date(data[0].time).getTime()) / 1000.0 / 60;
+                if (minuteago > 5) {
+                    console.log(minuteago);
+                    var sum = data.reduce(function(sum, value) {
+                        return sum + value.smooth_index;
+                    }, 0);
+                    console.log(sum);
+                    var avg = sum / data.length;
+                    console.log(avg);
+                    data.forEach(data => {
+                        console.log(data.id);
+                        Road.update({ smooth_index: data.smooth_index / avg, filter_std_all: true }, { where: { id: data.id } })
+                            .then(function() {
+                                console.log('update smooth_index where id = ' + data.id);
+                            }).catch(function(e) {
+                                console.log("id:" + data.id + " update failed !");
+                            });
                     })
-                })
+
+                }
+            })
         })
-        //res.send('done');
-        // var data = JSON.parse(body);
+    })
+    return true;
 }
