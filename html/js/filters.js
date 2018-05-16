@@ -16,7 +16,7 @@ function twsr_filters() {
 
     this.mot_filter = function(mot) {
         //todo: rotate gacc_xyz       
-        console.log(mot.time)
+        //console.log(mot.time)
         if (ori_cache.length > 0) {
             var rotation_matrix = R_Matrix(ori_cache[ori_cache.length - 1].beta * Math.PI / 180.0,
                 ori_cache[ori_cache.length - 1].gamma * Math.PI / 180.0,

@@ -310,6 +310,7 @@ function initDialog() {
 
     var dialog = $("#meta-form").dialog({
         width: "auto",
+        height: 500,
         modal: true,
         dialogClass: "no-close",
         buttons: {
@@ -321,7 +322,7 @@ function initDialog() {
         confirmMeta();
     });
     $("#vehicle").find("option").remove().end();
-    $("#vehicle").append("<option>car</option><option>bus</option><option>moto</option><option>bike</option><option>MRT</option><option>train</option><option>others</option>");
+    $("#vehicle").append("<option>car</option><option>bus</option><option>moto</option><option>bike</option><option>MRT</option><option>train</option><option>boat</option><option>others</option>");
     $("#vehicle").selectmenu({ width: "auto" });
     dialog.dialog("open");
 }

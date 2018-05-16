@@ -166,7 +166,7 @@ function insertDB(req, res) {
 }
 
 function filterDB(req, res) {
-    console.log('filterDB' + new Date());
+    //console.log('filterDB' + new Date());
 
     //query uuid where filter_std_all = 0
     //uuid foreach select where filter_std_all = 0
@@ -183,7 +183,7 @@ function filterDB(req, res) {
         ]
     }).then(function(uuid) {
         uuid.forEach(data => {
-            console.log(data.uuid);
+            //console.log(data.uuid);
             Road.findAll({
                 where: {
                     filter_std_all: 0,
@@ -196,18 +196,18 @@ function filterDB(req, res) {
                     'id', 'time', 'smooth_index', 'uuid'
                 ]
             }).then(function(data) {
-                console.log(data.length);
+                //console.log(data.length);
                 var minuteago = (new Date().getTime() - new Date(data[0].time).getTime()) / 1000.0 / 60;
                 if (minuteago > 5) {
-                    console.log(minuteago);
+                    //console.log(minuteago);
                     var sum = data.reduce(function(sum, value) {
                         return sum + value.smooth_index;
                     }, 0);
-                    console.log(sum);
+                    //console.log(sum);
                     var avg = sum / data.length;
-                    console.log(avg);
+                    //console.log(avg);
                     data.forEach(data => {
-                        console.log(data.id);
+                        //console.log(data.id);
                         Road.update({ smooth_index: data.smooth_index / avg, filter_std_all: true }, { where: { id: data.id } })
                             .then(function() {
                                 console.log('update smooth_index where id = ' + data.id);
