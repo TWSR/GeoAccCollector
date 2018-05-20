@@ -30,7 +30,8 @@ function twsr_filters() {
             if (Math.abs(new Date(mot_cache[mot_cache.length - 1].time) - new Date(mot_cache[0].time)) > time_interval) {
                 var geo_temp = geo_cache.filter(geo_ => new Date(geo_.time).getTime() > new Date(mot_cache[0].time).getTime() - 1000 && new Date(geo_.time).getTime() < new Date(mot_cache[mot_cache.length - 1].time).getTime());
 
-                if (geo_temp.length >= time_interval / 1000) {
+                //if (geo_temp.length >= time_interval / 1000) {
+                if (true) {
                     var dist_sum = 0;
                     var pt_str = '';
                     for (var i = 0; i < geo_temp.length; i++) {
@@ -41,11 +42,12 @@ function twsr_filters() {
                     }
                     pt_str = pt_str.substring(0, pt_str.length - 1);
 
-                    if (dist_sum > 10 && dist_sum < 500) {
+                    //if (dist_sum > 10 && dist_sum < 500) {
+                    if (true) {
                         var stdZ = standardDeviation(gacc_z);
                         var latlng = geo_temp[parseInt(geo_temp.length / 2)].latitude + ' ' + geo_temp[parseInt(geo_temp.length / 2)].longitude;
 
-                        $.post('/insertDB', JSON.stringify({
+                        var postdata = JSON.stringify({
                             "time": mot_cache[0].time,
                             "smooth_index": stdZ,
                             "source": 'GeoAccCollector' + location.port,
@@ -55,7 +57,9 @@ function twsr_filters() {
                             "uuid": Cookies.get("uuid"),
                             "vehicle_type": Cookies.get("vehicle"),
                             "user": Cookies.get("name")
-                        }))
+                        });
+                        console.log(postdata.length);
+                        $.post('/insertDB', postdata);
                     }
                 }
                 mot_cache = [];

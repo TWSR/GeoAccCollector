@@ -1,0 +1,39 @@
+{
+  "name": "nosleep",
+  "title": "NoSleep.js",
+  "version": "0.7.1",
+  "description": "Prevent display sleep on all Android and iOS browsers",
+  "homepage": "https://github.com/richtr/NoSleep.js",
+  "authors": [
+    "Rich Tibbett"
+  ],
+  "main": "src/index.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "**/*.md",
+    "**/*.html",
+    "/*.js",
+    "package.json",
+    "node_modules",
+    "bower_components"
+  ],
+  "keywords": [
+    "nosleep",
+    "wake lock",
+    "wakelock",
+    "screen",
+    "display",
+    "sleep"
+  ],
+  "_release": "0.7.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.7.1",
+    "commit": "b7f921d0549013e788ff492ef1fa4343ecd82afc"
+  },
+  "_source": "https://github.com/richtr/NoSleep.js.git",
+  "_target": "^0.7.1",
+  "_originalSource": "nosleep",
+  "_direct": true
+}

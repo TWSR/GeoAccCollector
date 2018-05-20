@@ -188,7 +188,7 @@ function initVideo() {
                     var img = document.getElementById("snapshot" + deviceIndex);
                     video.setAttribute("width", video_width);
                     video.setAttribute("height", video_height);
-                    if (is_iphone_ipad()) {
+                    if (is_iphone_ipad() || !window.URL.createObjectURL) {
                         video.setAttribute("autoplay", "");
                         video.setAttribute("muted", "");
                         video.setAttribute("playsinline", "");
@@ -272,7 +272,7 @@ function start_recording_click() {
         timestamps.ori = date;
         timestamps.mot = date;
         timestamps.geo = date;
-        timeout_reload_timer = setInterval(timeout_reload, 1000);
+        //timeout_reload_timer = setInterval(timeout_reload, 1000);
 
         (function loop_push() {
             pushToServer();
@@ -306,6 +306,8 @@ function initDialog() {
         if (allow_camera === "yes") {
             initVideo();
         }
+        var noSleep = new NoSleep();
+        noSleep.enable();
     }
 
     var dialog = $("#meta-form").dialog({
@@ -354,4 +356,8 @@ $(function() {
     $("#allow_camera").buttonset();
     $("#start_recording").button().click(start_recording_click);
     initDialog();
+
+
+
+
 });
