@@ -14,6 +14,20 @@ body {
     z-index: 50;
 }
 
+#map {
+    height: 100%;
+    width: 100%;
+    z-index: 40;
+}
+
+#banner {
+    position: absolute;
+    top: 1vh;
+    left: 50%;
+    height: 20px;
+    z-index: 41;
+}
+
 #message {
     position: absolute;
     left: 10px;

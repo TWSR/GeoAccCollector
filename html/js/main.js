@@ -357,7 +357,13 @@ $(function() {
     $("#start_recording").button().click(start_recording_click);
     initDialog();
 
-
-
-
+    var map = L.map('map', { zoomControl: false }).setView([25.058, 121.524], 15);
+    L.control.zoom(false);
+    L.tileLayer('http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        zoomControl: false,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+    console.log(Cookies.get("uuid"));
+    $.get('/getdatabyuuid', Cookies.get("uuid"));
 });

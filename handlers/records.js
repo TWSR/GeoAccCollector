@@ -18,7 +18,8 @@ exports = module.exports = (function() {
         recorder: recorder,
         data_folder: data_folder,
         insertDB: insertDB,
-        filterDB: filterDB
+        filterDB: filterDB,
+        getdatabyuuid: getdatabyuuid
     };
 })();
 
@@ -221,4 +222,22 @@ function filterDB(req, res) {
         })
     })
     return true;
+}
+
+function getdatabyuuid(req, res) {
+    Road.findAll({
+        where: {
+            uuid: req,
+        },
+        order: [
+            ['time', 'DESC']
+        ],
+        attributes: [
+            'latlng', 'time', 'smooth_index'
+        ]
+    }).then(function(data) {
+        //res.send(JSON.stringify(data));
+        return data;
+    })
+
 }

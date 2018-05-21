@@ -34,14 +34,13 @@ app.use(function(req, res, next) {
 app.use("/", express.static(__dirname + '/html'));
 app.use("/", express.static(__dirname + '/bower_components'));
 
-
 /*
     Register callbacks
  */
 app.get('/test', tests.test);
 app.post('/recorder', records.recorder);
-
 app.post('/insertDB', records.insertDB);
+app.get('/getdatabyuuid', records.getdatabyuuid);
 
 httpsServer.listen(config.port_number, function() {
     console.log("https listening 0.0.0.0:" + config.port_number);
