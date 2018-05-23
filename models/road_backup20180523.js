@@ -1,19 +1,22 @@
 /* jshint indent: 2 */
 
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('roadtest', {
+  return sequelize.define('road_backup20180523', {
     id: {
       type: DataTypes.INTEGER(11),
       allowNull: false,
-      primaryKey: true,
-      autoIncrement: true
+      defaultValue: '0'
+    },
+    vehicle_type: {
+      type: DataTypes.STRING(45),
+      allowNull: true
     },
     time: {
       type: DataTypes.DATE,
       allowNull: true
     },
     points: {
-      type: "MULTIPOINT",
+      type: "LINESTRING",
       allowNull: true
     },
     smooth_index: {
@@ -22,42 +25,6 @@ module.exports = function(sequelize, DataTypes) {
     },
     latlng: {
       type: "POINT",
-      allowNull: true
-    },
-    acc_x: {
-      type: DataTypes.FLOAT,
-      allowNull: true
-    },
-    acc_y: {
-      type: DataTypes.FLOAT,
-      allowNull: true
-    },
-    acc_z: {
-      type: DataTypes.FLOAT,
-      allowNull: true
-    },
-    acc_xg: {
-      type: DataTypes.FLOAT,
-      allowNull: true
-    },
-    acc_yg: {
-      type: DataTypes.FLOAT,
-      allowNull: true
-    },
-    acc_zg: {
-      type: DataTypes.FLOAT,
-      allowNull: true
-    },
-    alpha: {
-      type: DataTypes.FLOAT,
-      allowNull: true
-    },
-    beta: {
-      type: DataTypes.FLOAT,
-      allowNull: true
-    },
-    gamma: {
-      type: DataTypes.FLOAT,
       allowNull: true
     },
     img: {
@@ -72,7 +39,7 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.TEXT,
       allowNull: true
     },
-    filter1: {
+    filter_std_all: {
       type: DataTypes.INTEGER(1),
       allowNull: true,
       defaultValue: '0'
@@ -82,11 +49,19 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true,
       defaultValue: '0'
     },
+    user: {
+      type: DataTypes.STRING(45),
+      allowNull: true
+    },
     remark: {
       type: DataTypes.TEXT,
       allowNull: true
+    },
+    roadcol: {
+      type: DataTypes.STRING(45),
+      allowNull: true
     }
   }, {
-    tableName: 'roadtest'
+    tableName: 'road_backup20180523'
   });
 };

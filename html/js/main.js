@@ -20,6 +20,10 @@ var orientations = [],
 var snapshots = [];
 var max_timestamp = 60000,
     timestamps = { ori: ori_date, mot: mot_date, geo: geo_date };
+var filter_post_status = null;
+var filter_post_num = 0;
+var filter_ng_time = 0;
+
 
 if (typeof twsr_filters === "function") {
     var filters = new twsr_filters();
@@ -248,21 +252,49 @@ function pushToServer() {
             mot_cnt_sent += mot.length;
             geo_cnt_sent += geo.length;
             snap_cnt_sent += snap.length;
-            pop_message("<br/>Sent: " + JSON.stringify({
-                    ori_cnt: ori.length,
-                    mot_cnt: mot.length,
-                    geo_cnt: geo.length,
-                    snap_cnt: snap.length
-                }) + "<br/>" +
-                "Done: " + data + "<br/>" +
-                "sent/left/sent_acc/all: <br/>" +
+            /*
+            pop_message(
+                // "<br/>Sent: " + JSON.stringify({
+                // ori_cnt: ori.length,
+                // mot_cnt: mot.length,
+                // geo_cnt: geo.length,
+                // snap_cnt: snap.length
+                // }) + "<br/>" +
+                "UUID: " + Cookies.get("uuid") + "<br/>" +
+                //"UUID: " + Cookies.get("uuid").split('-8888')[0] + "<br/>-8888" + Cookies.get("uuid").split('-8888')[1] + "<br/>" +
+                "<br/>    status / all: <br/>" +
                 "<blockquote>" +
-                "orientation: " + ori.length + "/" + orientations.length + "/" + ori_cnt_sent + "/" + (ori_cnt_sent + orientations.length) + "<br/>" +
-                "motion: " + mot.length + "/" + motions.length + "/" + mot_cnt_sent + "/" + (mot_cnt_sent + motions.length) + "<br/>" +
-                "geolocation: " + geo.length + "/" + geolocations.length + "/" + geo_cnt_sent + "/" + (geo_cnt_sent + geolocations.length) + "<br/>" +
-                "snapshot: " + snap.length + "/" + snapshots.length + "/" + snap_cnt_sent + "/" + (snap_cnt_sent + snapshots.length) + "<br/>" +
+                "orientation: " + ori.length + " / " + (ori_cnt_sent + orientations.length) + "<br/>" +
+                "motion: " + mot.length + " / " + (mot_cnt_sent + motions.length) + "<br/>" +
+                "geolocation: " + geo.length + " / " + (geo_cnt_sent + geolocations.length) + "<br/>" +
+                "snapshot: " + snap.length + " / " + (snap_cnt_sent + snapshots.length) + "<br/>" +
+
+                "<br/>upload index: " + filter_post_status + " / " + filter_post_num + "<br/>" +
+
+                // "sent/left/sent_acc/all: <br/>" +
+                // "<blockquote>" +
+                // "orientation: " + ori.length + "/" + orientations.length + "/" + ori_cnt_sent + "/" + (ori_cnt_sent + orientations.length) + "<br/>" +
+                // "motion: " + mot.length + "/" + motions.length + "/" + mot_cnt_sent + "/" + (mot_cnt_sent + motions.length) + "<br/>" +
+                // "geolocation: " + geo.length + "/" + geolocations.length + "/" + geo_cnt_sent + "/" + (geo_cnt_sent + geolocations.length) + "<br/>" +
+                // "snapshot: " + snap.length + "/" + snapshots.length + "/" + snap_cnt_sent + "/" + (snap_cnt_sent + snapshots.length) + "<br/>" +
                 "</blockquote>");
+                */
         });
+
+    if (filter_ng_time > 5 * 60 * 1000) {
+        filter_ng_time = 0;
+        alert("Upload failed for 5 minutes");
+    }
+    pop_message(
+        "UUID: " + Cookies.get("uuid") + "<br/>" +
+        "<br/>    status / all: <br/>" +
+        "<blockquote>" +
+        "orientation: " + ori.length + " / " + (ori_cnt_sent + orientations.length) + "<br/>" +
+        "motion: " + mot.length + " / " + (mot_cnt_sent + motions.length) + "<br/>" +
+        "geolocation: " + geo.length + " / " + (geo_cnt_sent + geolocations.length) + "<br/>" +
+        "snapshot: " + snap.length + " / " + (snap_cnt_sent + snapshots.length) + "<br/>" +
+        "<br/>upload index: " + filter_post_status + " / " + filter_post_num + "<br/>" +
+        "</blockquote>");
 }
 
 function start_recording_click() {
@@ -273,6 +305,7 @@ function start_recording_click() {
         timestamps.mot = date;
         timestamps.geo = date;
         //timeout_reload_timer = setInterval(timeout_reload, 1000);
+        $("#map").focus();
 
         (function loop_push() {
             pushToServer();
@@ -287,32 +320,40 @@ function start_recording_click() {
 }
 
 function initDialog() {
+    $("#name").val(Cookies.get("name"));
+
     function confirmMeta() {
         var name = $("#name").val();
         var vehicle = $("#vehicle").val();
         var allow_camera = $("#allow_camera :radio:checked").val();
-        if (name === "" || name === "Anon") {
-            $("#validate-tips").addClass("ui-state-highlight");
-            setTimeout(function() { $("#validate-tips").removeClass("ui-state-highlight") }, 1000);
-            return;
+        //if (name === "" || name === "Anon") {
+        if (!$("#term_check").is(":checked")) {
+            //$("#validate-tips").addClass("ui-state-highlight");
+            //setTimeout(function() { $("#validate-tips").removeClass("ui-state-highlight") }, 1000);
+            //return;
+            $("#term").css({ 'color': 'red', 'font-size': '150%' });
+
         } else {
             Cookies.set("name", name, { expires: 30 });
             Cookies.set("vehicle", vehicle, { expires: 30 });
             Cookies.set("allow_camera", allow_camera, { expires: 30 });
             dialog.dialog("close");
-            update_uuid();
-            setInterval(update_uuid, 300000);
+
+            //update_uuid();
+            //setInterval(update_uuid, 300000);
+
+            if (allow_camera === "yes") {
+                initVideo();
+            }
+            start_recording_click();
+            var noSleep = new NoSleep();
+            noSleep.enable();
         }
-        if (allow_camera === "yes") {
-            initVideo();
-        }
-        var noSleep = new NoSleep();
-        noSleep.enable();
     }
 
     var dialog = $("#meta-form").dialog({
         width: "auto",
-        height: 500,
+        //height: "50%",
         modal: true,
         dialogClass: "no-close",
         buttons: {
@@ -322,9 +363,10 @@ function initDialog() {
     dialog.find("form").on("submit", function(event) {
         event.preventDefault();
         confirmMeta();
+
     });
     $("#vehicle").find("option").remove().end();
-    $("#vehicle").append("<option>car</option><option>bus</option><option>moto</option><option>bike</option><option>MRT</option><option>train</option><option>boat</option><option>others</option>");
+    $("#vehicle").append("<option>car</option><option>bus</option><option>moto</option><option>e-moto</option><option>bike</option><option>train</option><option>others</option>");
     $("#vehicle").selectmenu({ width: "auto" });
     dialog.dialog("open");
 }
@@ -356,14 +398,27 @@ $(function() {
     $("#allow_camera").buttonset();
     $("#start_recording").button().click(start_recording_click);
     initDialog();
+    mapini();
 
-    var map = L.map('map', { zoomControl: false }).setView([25.058, 121.524], 15);
-    L.control.zoom(false);
-    L.tileLayer('http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        zoomControl: false,
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
-    console.log(Cookies.get("uuid"));
-    $.get('/getdatabyuuid', Cookies.get("uuid"));
+    fetch('/getdatabyuuid', {
+            credentials: "same-origin"
+        })
+        .then((response) => response.json())
+        .then((dataset) => {
+            Alldataset = dataset
+            Container = new Set(dataset)
+            dataset.forEach(data => {
+                drawPolyLine(data, false)
+            })
+        })
+        .catch(err => {
+            console.log('can not fetch roadinfo data.')
+            console.log(err)
+        })
+
+    /*
+    $.get('/getdatabyuuid', function(data) {
+        console.log(data);
+    });
+    */
 });

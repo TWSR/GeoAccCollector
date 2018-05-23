@@ -184,7 +184,6 @@ function filterDB(req, res) {
         ]
     }).then(function(uuid) {
         uuid.forEach(data => {
-            //console.log(data.uuid);
             Road.findAll({
                 where: {
                     filter_std_all: 0,
@@ -194,22 +193,18 @@ function filterDB(req, res) {
                     ['time', 'DESC']
                 ],
                 attributes: [
-                    'id', 'time', 'smooth_index', 'uuid'
+                    'id', 'time', 'uuid', 'std_section'
                 ]
             }).then(function(data) {
-                //console.log(data.length);
                 var minuteago = (new Date().getTime() - new Date(data[0].time).getTime()) / 1000.0 / 60;
                 if (minuteago > 5) {
-                    //console.log(minuteago);
                     var sum = data.reduce(function(sum, value) {
-                        return sum + value.smooth_index;
+                        return sum + value.std_section;
                     }, 0);
-                    //console.log(sum);
                     var avg = sum / data.length;
-                    //console.log(avg);
+
                     data.forEach(data => {
-                        //console.log(data.id);
-                        Road.update({ smooth_index: data.smooth_index / avg, filter_std_all: true }, { where: { id: data.id } })
+                        Road.update({ smooth_index: data.std_section / avg, filter_std_all: true, std_route: avg }, { where: { id: data.id } })
                             .then(function() {
                                 console.log('update smooth_index where id = ' + data.id);
                             }).catch(function(e) {
@@ -227,17 +222,39 @@ function filterDB(req, res) {
 function getdatabyuuid(req, res) {
     Road.findAll({
         where: {
-            uuid: req,
+            uuid: req.cookies.uuid,
+            //uuid: '138624ef-584b-11e8-8888-000102030405',
         },
         order: [
             ['time', 'DESC']
         ],
         attributes: [
-            'latlng', 'time', 'smooth_index'
+            'points', 'time', 'smooth_index'
         ]
-    }).then(function(data) {
-        //res.send(JSON.stringify(data));
-        return data;
-    })
+    }).then((roadInfos) => {
+        let output = roadInfos.map((roadInfo) => {
+            //let result = roadInfo.get({plain: true})
 
+            let result = {}
+            result.smooth_index = roadInfo.get('smooth_index')
+            result.time = roadInfo.get('time')
+            try {
+                result.points = (roadInfo.get('points')) ? roadInfo.get('points').coordinates : null
+            } catch (err) {};
+
+            if (result.points == null) {
+                var points = [];
+                var temp_str = result.remark.replace("LineString(", "");
+                temp_str = temp_str.replace(")", "");
+                var temp = temp_str.split(',');
+                temp.forEach(element => {
+                    var latlng = element.split(' ');
+                    points.push([latlng[0], latlng[1]])
+                });
+                result.points = points
+            }
+            return result
+        })
+        res.json(output)
+    })
 }
