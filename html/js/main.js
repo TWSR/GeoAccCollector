@@ -246,12 +246,14 @@ function pushToServer() {
     var data = { orientations: ori, motions: mot, geolocations: geo };
     var snap = snapshots.splice(0, snapshots.length);
     data.snapshots = snap;
+
+    ori_cnt_sent += ori.length;
+    mot_cnt_sent += mot.length;
+    geo_cnt_sent += geo.length;
+    snap_cnt_sent += snap.length;
+
     $.post('/recorder', JSON.stringify(data))
         .done(function(data) {
-            ori_cnt_sent += ori.length;
-            mot_cnt_sent += mot.length;
-            geo_cnt_sent += geo.length;
-            snap_cnt_sent += snap.length;
             /*
             pop_message(
                 // "<br/>Sent: " + JSON.stringify({

@@ -1,0 +1,22 @@
+{
+  "name": "GeoAccCollector",
+  "description": "Geolocation and Accelerometer Data Collector",
+  "main": "index.js",
+  "authors": [
+    "Audi Hsu <audihsu@gmail.com>"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "nosleep": "^0.7.1",
+    "leaflet": "^1.3.1",
+    "leaflet-polylinedecorator": "^1.6.0"
+  }
+}
