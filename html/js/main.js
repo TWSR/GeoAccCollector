@@ -320,7 +320,9 @@ function start_recording_click() {
 }
 
 function initDialog() {
-    $("#name").val(Cookies.get("name"));
+    if (Cookies.get("name") != "" && Cookies.get("name")) {
+        $("#name").val(Cookies.get("name"));
+    }
 
     function confirmMeta() {
         var name = $("#name").val();

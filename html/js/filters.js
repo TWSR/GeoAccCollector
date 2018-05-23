@@ -61,6 +61,7 @@ function twsr_filters() {
                         var stdZ = standardDeviation(gacc_z);
                         var latlng = geo_temp[parseInt(geo_temp.length / 2)].latitude + ' ' + geo_temp[parseInt(geo_temp.length / 2)].longitude;
 
+
                         var geolocation_accuracy = geo_temp.reduce(function(sum, value) {
                             return sum + value.accuracy;
                         }, 0) / geo_temp.length;
