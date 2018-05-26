@@ -29,26 +29,26 @@ if (typeof twsr_filters === "function") {
     var filters = new twsr_filters();
 }
 
-var timeout_reload_timer = 0;
+// var timeout_reload_timer = 0;
 
-function timeout_reload() {
-    var date = new Date();
-    if ((date - timestamps.ori) > max_timestamp ||
-        (date - timestamps.mot) > max_timestamp ||
-        (date - timestamps.geo) > max_timestamp) {
-        var dialog = $("<div class='dialog' title='Error Reload'><p>You must allow geolocation and camera for this webapp!!</p></div>").dialog({
-            modal: true,
-            dialogClass: "no-close",
-            buttons: {
-                "OK": function() {
-                    self.location.reload();
-                }
-            }
-        })
-        return false;
-    }
-    return true;
-}
+// function timeout_reload() {
+//     var date = new Date();
+//     if ((date - timestamps.ori) > max_timestamp ||
+//         (date - timestamps.mot) > max_timestamp ||
+//         (date - timestamps.geo) > max_timestamp) {
+//         var dialog = $("<div class='dialog' title='Error Reload'><p>You must allow geolocation and camera for this webapp!!</p></div>").dialog({
+//             modal: true,
+//             dialogClass: "no-close",
+//             buttons: {
+//                 "OK": function() {
+//                     self.location.reload();
+//                 }
+//             }
+//         })
+//         return false;
+//     }
+//     return true;
+// }
 
 function handleOrientation(event) {
     if ($("#start_recording").val() === "Start Recording") return;
@@ -289,12 +289,12 @@ function pushToServer() {
     }
     pop_message(
         "UUID: " + Cookies.get("uuid") + "<br/>" +
-        "<br/>    status / all: <br/>" +
+        //"<br/>    status / all: <br/>" +
         "<blockquote>" +
         "orientation: " + ori.length + " / " + (ori_cnt_sent + orientations.length) + "<br/>" +
         "motion: " + mot.length + " / " + (mot_cnt_sent + motions.length) + "<br/>" +
         "geolocation: " + geo.length + " / " + (geo_cnt_sent + geolocations.length) + "<br/>" +
-        "snapshot: " + snap.length + " / " + (snap_cnt_sent + snapshots.length) + "<br/>" +
+        //"snapshot: " + snap.length + " / " + (snap_cnt_sent + snapshots.length) + "<br/>" +
         "<br/>upload index: " + filter_post_status + " / " + filter_post_num + "<br/>" +
         "</blockquote>");
 }
@@ -317,7 +317,7 @@ function start_recording_click() {
         })();
     } else {
         $("#start_recording").val("Start Recording");
-        clearInterval(timeout_reload_timer);
+        //clearInterval(timeout_reload_timer);
     }
 }
 
@@ -329,7 +329,7 @@ function initDialog() {
     function confirmMeta() {
         var name = $("#name").val();
         var vehicle = $("#vehicle").val();
-        var allow_camera = $("#allow_camera :radio:checked").val();
+        //var allow_camera = $("#allow_camera :radio:checked").val();
         //if (name === "" || name === "Anon") {
         if (!$("#term_check").is(":checked")) {
             //$("#validate-tips").addClass("ui-state-highlight");
@@ -340,15 +340,15 @@ function initDialog() {
         } else {
             Cookies.set("name", name, { expires: 30 });
             Cookies.set("vehicle", vehicle, { expires: 30 });
-            Cookies.set("allow_camera", allow_camera, { expires: 30 });
+            //Cookies.set("allow_camera", allow_camera, { expires: 30 });
             dialog.dialog("close");
 
             //update_uuid();
             //setInterval(update_uuid, 300000);
 
-            if (allow_camera === "yes") {
-                initVideo();
-            }
+            // if (allow_camera === "yes") {
+            //     initVideo();
+            // }
             start_recording_click();
             var noSleep = new NoSleep();
             noSleep.enable();
@@ -356,8 +356,9 @@ function initDialog() {
     }
 
     var dialog = $("#meta-form").dialog({
-        width: "auto",
+        //width: "auto",
         //height: "50%",
+        //height: "300",
         modal: true,
         dialogClass: "no-close",
         buttons: {
@@ -379,8 +380,8 @@ function update_uuid() {
     $("#uuid").html(
         "UUID: " + Cookies.get("uuid") + "<br/>" +
         "Name: " + Cookies.get("name") + "&nbsp;&nbsp;&nbsp;&nbsp;" +
-        "Vehicle: " + Cookies.get("vehicle") + "&nbsp;&nbsp;&nbsp;&nbsp;" +
-        "Camera: " + Cookies.get("allow_camera")
+        "Vehicle: " + Cookies.get("vehicle") + "&nbsp;&nbsp;&nbsp;&nbsp;"
+        //"Camera: " + Cookies.get("allow_camera")
     );
 }
 
@@ -399,7 +400,7 @@ $(function() {
         navigator.geolocation.getCurrentPosition(handleGeolocation);
     }
 
-    $("#allow_camera").buttonset();
+    //$("#allow_camera").buttonset();
     $("#start_recording").button().click(start_recording_click);
     initDialog();
     mapini();

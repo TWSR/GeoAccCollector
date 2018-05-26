@@ -72,8 +72,13 @@ function twsr_filters() {
 
                         data.smooth_index = stdZ;
 
+                        var d = new Date(mot_cache[0].time.split('.')[0]);
+                        var utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+                        var d8 = new Date(utc + (3600000 * 8));
+
                         var postdata = JSON.stringify({
-                            "time": mot_cache[0].time,
+                            //"time": mot_cache[0].time,
+                            "time": d8,
                             //"smooth_index": stdZ,
                             "std_section": stdZ,
                             "source": 'GeoAccCollector' + location.port,

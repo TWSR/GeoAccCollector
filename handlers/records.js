@@ -196,7 +196,11 @@ function filterDB(req, res) {
                     'id', 'time', 'uuid', 'std_section'
                 ]
             }).then(function(data) {
-                var minuteago = (new Date().getTime() - new Date(data[0].time).getTime()) / 1000.0 / 60;
+                var dtNow = new Date();
+                utc = dtNow.getTime() + (dtNow.getTimezoneOffset() * 60000);
+                dtNow = new Date(utc + (3600000 * 8));
+
+                var minuteago = (dtNow.getTime() - new Date(data[0].time).getTime()) / 1000.0 / 60;
                 if (minuteago > 5) {
                     var sum = data.reduce(function(sum, value) {
                         return sum + value.std_section;
