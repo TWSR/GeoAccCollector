@@ -13,7 +13,6 @@ function twsr_filters() {
         ori_cache.splice(0, ori_cache.length - cache_length);
         return true;
     }
-
     this.mot_filter = function(mot) {
 
         //todo: rotate gacc_xyz       
@@ -37,66 +36,72 @@ function twsr_filters() {
             if (Math.abs(date1 - date2) > time_interval) {
                 filter_post_status = 'NG';
                 filter_ng_time += time_interval;
-                //if (mot_cache.length >= 10) {
-                var geo_temp = geo_cache.filter(geo_ => new Date(geo_.time.split('.')[0]).getTime() > new Date(mot_cache[0].time.split('.')[0]).getTime() - 1000 && new Date(geo_.time.split('.')[0]).getTime() < new Date(mot_cache[mot_cache.length - 1].time.split('.')[0]).getTime());
 
-                if (geo_temp.length >= time_interval / 1000) { // recive gps stable
-                    var dist_sum = 0;
-                    var pt_str = '';
-                    var data = {};
-                    var points = [];
-                    var smooth_index = [];
+                if (this.detection_onbody()) {
+                    filter_post_status = 'onbody';
+                } else {
 
-                    for (var i = 0; i < geo_temp.length; i++) {
-                        points.push([geo_temp[i].latitude, geo_temp[i].longitude]);
-                        pt_str += geo_temp[i].latitude + " " + geo_temp[i].longitude + ","
-                        if (i != 0) {
-                            dist_sum += this.distFromlatlng(geo_temp[i - 1].latitude, geo_temp[i - 1].longitude, geo_temp[i].latitude, geo_temp[i].longitude);
+                    //if (mot_cache.length >= 10) {
+                    var geo_temp = geo_cache.filter(geo_ => new Date(geo_.time.split('.')[0]).getTime() > new Date(mot_cache[0].time.split('.')[0]).getTime() - 1000 && new Date(geo_.time.split('.')[0]).getTime() < new Date(mot_cache[mot_cache.length - 1].time.split('.')[0]).getTime());
+
+                    if (geo_temp.length >= time_interval / 1000) { // recive gps stable
+                        var dist_sum = 0;
+                        var pt_str = '';
+                        var data = {};
+                        var points = [];
+                        var smooth_index = [];
+
+                        for (var i = 0; i < geo_temp.length; i++) {
+                            points.push([geo_temp[i].latitude, geo_temp[i].longitude]);
+                            pt_str += geo_temp[i].latitude + " " + geo_temp[i].longitude + ","
+                            if (i != 0) {
+                                dist_sum += this.distFromlatlng(geo_temp[i - 1].latitude, geo_temp[i - 1].longitude, geo_temp[i].latitude, geo_temp[i].longitude);
+                            }
                         }
-                    }
-                    pt_str = pt_str.substring(0, pt_str.length - 1);
-                    data.points = points;
+                        pt_str = pt_str.substring(0, pt_str.length - 1);
+                        data.points = points;
 
-                    if (dist_sum > 10 && dist_sum < 500) {
-                        var stdZ = standardDeviation(gacc_z);
-                        var latlng = geo_temp[parseInt(geo_temp.length / 2)].latitude + ' ' + geo_temp[parseInt(geo_temp.length / 2)].longitude;
+                        if (dist_sum > 10 && dist_sum < 500) {
+                            var stdZ = standardDeviation(gacc_z);
+                            var latlng = geo_temp[parseInt(geo_temp.length / 2)].latitude + ' ' + geo_temp[parseInt(geo_temp.length / 2)].longitude;
 
 
-                        var geolocation_accuracy = geo_temp.reduce(function(sum, value) {
-                            return sum + value.accuracy;
-                        }, 0) / geo_temp.length;
+                            var geolocation_accuracy = geo_temp.reduce(function(sum, value) {
+                                return sum + value.accuracy;
+                            }, 0) / geo_temp.length;
 
-                        var geolocation_speed = geo_temp.reduce(function(sum, value) {
-                            return sum + value.speed;
-                        }, 0) / geo_temp.length;
+                            var geolocation_speed = geo_temp.reduce(function(sum, value) {
+                                return sum + value.speed;
+                            }, 0) / geo_temp.length;
 
-                        data.smooth_index = stdZ;
+                            data.smooth_index = stdZ;
 
-                        var d = new Date(mot_cache[0].time.split('.')[0]);
-                        var utc = d.getTime() + (d.getTimezoneOffset() * 60000);
-                        var d8 = new Date(utc + (3600000 * 8));
+                            var d = new Date(mot_cache[0].time.split('.')[0]);
+                            var utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+                            var d8 = new Date(utc + (3600000 * 8));
 
-                        var postdata = JSON.stringify({
-                            //"time": mot_cache[0].time,
-                            "time": d8,
-                            //"smooth_index": stdZ,
-                            "std_section": stdZ,
-                            "source": 'GeoAccCollector' + location.port,
-                            "points": pt_str,
-                            //"remark": pt_str,
-                            "latlng": latlng,
-                            "uuid": Cookies.get("uuid"),
-                            "vehicle_type": Cookies.get("vehicle"),
-                            "user": Cookies.get("name"),
-                            "geolocation_accuracy": geolocation_accuracy,
-                            "geolocation_speed": geolocation_speed
-                        });
-                        drawPolyLine(data, true);
+                            var postdata = JSON.stringify({
+                                //"time": mot_cache[0].time,
+                                "time": d8,
+                                //"smooth_index": stdZ,
+                                "std_section": stdZ,
+                                "source": 'GeoAccCollector' + location.port,
+                                "points": pt_str,
+                                //"remark": pt_str,
+                                "latlng": latlng,
+                                "uuid": Cookies.get("uuid"),
+                                "vehicle_type": Cookies.get("vehicle"),
+                                "user": Cookies.get("name"),
+                                "geolocation_accuracy": geolocation_accuracy,
+                                "geolocation_speed": geolocation_speed
+                            });
+                            drawPolyLine(data, true);
 
-                        $.post('/insertDB', postdata);
-                        filter_post_num += 1;
-                        filter_post_status = 'OK';
-                        filter_ng_time = 0;
+                            $.post('/insertDB', postdata);
+                            filter_post_num += 1;
+                            filter_post_status = 'OK';
+                            filter_ng_time = 0;
+                        }
                     }
                 }
                 mot_cache = [];
@@ -116,6 +121,29 @@ function twsr_filters() {
     }
     this.distFromlatlng = function(lat0, lng0, lat1, lng1) {
         return Math.sqrt(Math.pow(lat0 - lat1, 2) + Math.pow(lng0 - lng1, 2)) * scale_dist;
+    }
+    this.detection_onbody = function() {
+        var ori_temp = ori_cache.filter(ori_ =>
+            new Date(ori_.time.split('.')[0]).getTime() > new Date(mot_cache[0].time.split('.')[0]).getTime() &&
+            new Date(ori_.time.split('.')[0]).getTime() < new Date(mot_cache[mot_cache.length - 1].time.split('.')[0]).getTime());
+        var sum_a = 0;
+        var sum_b = 0;
+        var sum_g = 0;
+        for (var i = 1; i < ori_temp.length; i++) {
+            var d_alpha = ((ori_temp[i].alpha - ori_temp[i - 1].alpha + 30) % 360 - 30);
+            var d_beta = ((ori_temp[i].beta - ori_temp[i - 1].beta + 30) % 180 - 30);
+            var d_gamma = ((ori_temp[i].gamma - ori_temp[i - 1].gamma + 30) % 180 - 30);
+            sum_a += d_alpha;
+            sum_b += d_beta;
+            sum_g += d_gamma;
+        }
+        var sum = Math.abs(sum_a) + Math.abs(sum_b) + Math.abs(sum_g);
+        alert(sum);
+        if (sum > 90) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     return this;

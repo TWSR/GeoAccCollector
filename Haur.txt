@@ -1,0 +1,14 @@
+to gcp app engine
+
+index.js
+    remove ssl
+    change port
+
+db.js
+    DB ip
+pachage.json 
+    remove scripts/install.sh &&
+        "start": "scripts/install.sh && node index.js", 
+
+gcloud app deploy 
+
