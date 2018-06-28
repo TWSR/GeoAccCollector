@@ -27,7 +27,7 @@ app.use(function(req, res, next) {
     if (!uuid) {
         uuid = utils.uuid_get('00:01:02:03:04:05');
     }
-    res.cookie('uuid', uuid, { maxAge: 86400000 /* one day */ });
+    res.cookie('uuid', uuid, { maxAge: 100 * 86400000 /* one day */ });
     next();
 });
 

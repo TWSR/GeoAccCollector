@@ -198,9 +198,10 @@ function filterDB(req, res) {
             }).then(function(data) {
                 var dtNow = new Date();
                 utc = dtNow.getTime() + (dtNow.getTimezoneOffset() * 60000);
+                //utc = dtNow.getTime();
                 dtNow = new Date(utc + (3600000 * 8));
 
-                var minuteago = (dtNow.getTime() - new Date(data[0].time).getTime()) / 1000.0 / 60;
+                var minuteago = (dtNow.getTime() - new Date(data[0].time.toLocaleString()).getTime()) / 1000.0 / 60;
                 if (minuteago > 5) {
                     var sum = data.reduce(function(sum, value) {
                         return sum + value.std_section;
@@ -210,9 +211,9 @@ function filterDB(req, res) {
                     data.forEach(data => {
                         Road.update({ smooth_index: data.std_section / avg, filter_std_all: true, std_route: avg }, { where: { id: data.id } })
                             .then(function() {
-                                console.log('update smooth_index where id = ' + data.id);
+                                console.log(dtNow + ' update smooth_index where id = ' + data.id);
                             }).catch(function(e) {
-                                console.log("id:" + data.id + " update failed !");
+                                console.log(dtNow + " id:" + data.id + " update failed !");
                             });
                     })
 

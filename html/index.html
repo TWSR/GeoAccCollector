@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="/leaflet/dist/leaflet.css" integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ==" crossorigin="" />
     <script src="/leaflet/dist/leaflet.js" integrity="sha512-/Nsx9X4HebavoBvEBuyp3I7od5tA0UzAxs+j83KgC8PU0kgB4XiK4Lfe4y4cgBtaRJQEIFCW+oC506aPT2L1zw==" crossorigin=""></script>
     <script src="/leaflet-polylinedecorator/dist/leaflet.polylineDecorator.js"></script>
+    <script type="text/javascript" src="js/MovingMarker.js"></script>
     <script src="/nosleep/dist/NoSleep.min.js"></script>
 </head>
 
@@ -22,7 +23,10 @@
 
     <div id="message"></div>
     <input id="start_recording" type="button" value="Start Recording" />
-    <image id="banner" src="/images/poweredby-long.png"></image>
+    <a href="https://g0v.tw/zh-TW/">
+        <image id="banner" src="/images/poweredby-long.png"></image>
+    </a>
+    <image id="location" src="/images/if_ic_my_location_48px_blue.svg"></image>
     <!-- <h5>Snapshot Canvas</h5> -->
     <div id="map"></div>
     <div><canvas id="drawer1"></canvas><canvas id="drawer2"></canvas></div>
@@ -40,7 +44,7 @@
     <div><img id="snapshot1" /><img id="snapshot2" /></div>
     <h5>Debug Messages</h5>
     <div id="debug_message"></div>
-    <div id="meta-form" title="Info" style="display:none">
+    <div id="meta-form" title="before recording..." style="display:none">
         <!-- <p id="validate-tips">Enter your name and vehicle type</p> -->
         <form>
             <fieldset>
@@ -56,22 +60,29 @@
                         <option>car</option>
                     </select>
                 </div>
-                <!-- <div id="allow_camera">
+                <div id="allow_camera">
                     <label>Allow Camera:</label>
-                    <label for="allow_camera_yes">Yes</label>
                     <input type="radio" name="allow_camera" id="allow_camera_yes" value="yes" />
-                    <label for="allow_camera_no">No</label>
+                    <label for="allow_camera_yes">Yes</label>
                     <input type="radio" name="allow_camera" id="allow_camera_no" checked="checked" value="no" />
-                </div> -->
-                <div id="term" height="200px" width="100px">
-                    <a target="_blank" href="https://twsr.github.io/landing/term.html ">這就是聲明</a>
-                    <div><input id="term_check" type="checkbox">我已詳讀並同意以上聲明</div>
+                    <label for="allow_camera_no">No</label>
                 </div>
+                <div id="allow_upload_rawdata">
+                    <label>Upoload RawData:</label>
+                    <input type="radio" name="allow_upload_rawdata" id="allow_upload_rawdata_yes" value="yes" />
+                    <label for="allow_upload_rawdata_yes">Yes</label>
+                    <input type="radio" name="allow_upload_rawdata" id="allow_upload_rawdata_no" checked="checked" value="no" />
+                    <label for="allow_upload_rawdata_no">No</label>
+                </div>
+                <div id="term" height="200px" width="100px">
+                    <div><input id="term_check" type="checkbox">我已詳讀並同意<a style="color:Tomato;" target="_blank" href="https://twsr.github.io/landing/term.html ">使用條款</a></div>
+                    <div><a target="_blank" href="https://twsr.github.io/landing/term.html ">使用說明</a></div>
+                </div>
+
 
             </fieldset>
         </form>
     </div>
-
     <script type="text/javascript" src="js/jquery-ui-1.11.4/external/jquery/jquery.js"></script>
     <script type="text/javascript" src="js/jquery-ui-1.11.4/jquery-ui.min.js"></script>
     <script type="text/javascript" src="js/jscookie.js"></script>

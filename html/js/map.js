@@ -1,23 +1,16 @@
 var _map = {};
+var location_center = true;
 
 function mapini() {
     _map = L.map('map', { zoomControl: false }).setView([25.058, 121.524], 17);
     L.control.zoom(false);
-    //https://{s}.tile.openstreetmap.org/${z}/${x}/${y}.png 
-    //https: //tiles.wmflabs.org/bw-mapnik/${z}/${x}/${y}.png
     L.tileLayer('https://tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
         //L.tileLayer('http://a.tile.stamen.com/toner/{z}/{x}/{y}.png', {
+        //L.tileLayer('https://{s}.tile.openstreetmap.org/${z}/${x}/${y}.png', {
         maxZoom: 18,
         zoomControl: false,
         attribution: '&copy;OpenStreetMap'
     }).addTo(_map);
-
-    // L.tileLayer('http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
-    //     maxZoom: 18,
-    //     zoomControl: false,
-    //     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    // }).addTo(_map);
-    // console.log(Cookies.get("uuid"));
 }
 
 function drawPolyLine(data, center) {
@@ -35,13 +28,12 @@ function drawPolyLine(data, center) {
                 patterns: [{
                     offset: '100%',
                     repeat: 0,
-                    symbol: L.Symbol.arrowHead({ pixelSize: 5, polygon: false, pathOptions: { stroke: true, color: this._hsv((3 - data.smooth_index), 0, 3, 120) } })
+                    symbol: L.Symbol.arrowHead({ pixelSize: 7, polygon: false, pathOptions: { stroke: true, color: this._hsv((3 - data.smooth_index), 0, 3, 120) } })
                 }]
             }).addTo(_map);
 
             if (center == true) {
-                //alert('setcenter');            
-                _map.panTo(new L.LatLng(parseFloat(data.points[0][0]), parseFloat(data.points[0][1])));
+                //_map.panTo(new L.LatLng(parseFloat(data.points[0][0]), parseFloat(data.points[0][1])));
             }
             // let contentStr = this._createInfowindowContentStr(data);
             // decorator.bindPopup(contentStr);
@@ -73,4 +65,35 @@ function _hsv(a, min, max, angle) {
         c = "rgba(255, 0, " + X + ", 1)"
     }
     return c;
+}
+
+var mylocation;
+var last_location;
+var myIcon = L.icon({
+    iconUrl: './images/g0v.png',
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
+    popupAnchor: [-3, -76]
+});
+
+function map_loaction(geolaction) {
+    L.Marker.prototype.options.icon = myIcon;
+    // var radius = parseFloat(geolaction.accuracy) / 2;
+    // mylocation = L.circle(latlng, radius).addTo(_map);
+    var latlng = new L.LatLng(parseFloat(geolaction.latitude), parseFloat(geolaction.longitude));
+
+    if (mylocation) {
+        mylocation.remove();
+    }
+    if (last_location) {
+        mylocation = L.Marker.movingMarker([
+            [last_location.lat, last_location.lng],
+            [latlng.lat, latlng.lng]
+        ], [1000]).addTo(_map);
+        mylocation.start();
+    }
+    if (location_center) {
+        _map.panTo(latlng);
+    }
+    last_location = latlng;
 }

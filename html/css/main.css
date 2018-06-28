@@ -29,11 +29,20 @@ body {
     z-index: 41;
 }
 
+#location {
+    position: absolute;
+    bottom: 10%;
+    right: 5%;
+    height: 30px;
+    width: 30px;
+    z-index: 41;
+}
+
 #message {
     position: absolute;
     left: 10px;
     top: 60px;
-    width: 90%;
+    width: auto;
     padding: 5px;
     font-size: 80%;
     z-index: 49;
@@ -44,6 +53,7 @@ body {
     position: absolute;
     left: -9999px;
     top: 0px;
+    z-index: 0;
 }
 
 #drawer2 {
@@ -54,6 +64,7 @@ body {
     padding: 0;
     left: 0;
     top: 0;
+    z-index: 0;
 }
 
 #uuid {

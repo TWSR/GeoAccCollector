@@ -24,6 +24,7 @@ var filter_post_status = null;
 var filter_post_num = 0;
 var filter_ng_time = 0;
 
+var allow_upload_rawdata = false;
 
 if (typeof twsr_filters === "function") {
     var filters = new twsr_filters();
@@ -124,6 +125,8 @@ function handleGeolocation(position) {
     if (filters && filters.geo_filter(geo) === false) return;
     timestamps.geo = date;
     geolocations.push(geo);
+
+    map_loaction(position.coords);
 }
 
 function pop_message(message) {
@@ -149,6 +152,7 @@ function initVideo() {
             // pop_debug_message(JSON.stringify(devices));
             if (devs.length == 0) {
                 pop_message("No camera not found.");
+                alert("No camera not found.");
                 return;
             }
             // pop_debug_message(JSON.stringify(devs));
@@ -252,36 +256,10 @@ function pushToServer() {
     geo_cnt_sent += geo.length;
     snap_cnt_sent += snap.length;
 
-    $.post('/recorder', JSON.stringify(data))
-        .done(function(data) {
-            /*
-            pop_message(
-                // "<br/>Sent: " + JSON.stringify({
-                // ori_cnt: ori.length,
-                // mot_cnt: mot.length,
-                // geo_cnt: geo.length,
-                // snap_cnt: snap.length
-                // }) + "<br/>" +
-                "UUID: " + Cookies.get("uuid") + "<br/>" +
-                //"UUID: " + Cookies.get("uuid").split('-8888')[0] + "<br/>-8888" + Cookies.get("uuid").split('-8888')[1] + "<br/>" +
-                "<br/>    status / all: <br/>" +
-                "<blockquote>" +
-                "orientation: " + ori.length + " / " + (ori_cnt_sent + orientations.length) + "<br/>" +
-                "motion: " + mot.length + " / " + (mot_cnt_sent + motions.length) + "<br/>" +
-                "geolocation: " + geo.length + " / " + (geo_cnt_sent + geolocations.length) + "<br/>" +
-                "snapshot: " + snap.length + " / " + (snap_cnt_sent + snapshots.length) + "<br/>" +
-
-                "<br/>upload index: " + filter_post_status + " / " + filter_post_num + "<br/>" +
-
-                // "sent/left/sent_acc/all: <br/>" +
-                // "<blockquote>" +
-                // "orientation: " + ori.length + "/" + orientations.length + "/" + ori_cnt_sent + "/" + (ori_cnt_sent + orientations.length) + "<br/>" +
-                // "motion: " + mot.length + "/" + motions.length + "/" + mot_cnt_sent + "/" + (mot_cnt_sent + motions.length) + "<br/>" +
-                // "geolocation: " + geo.length + "/" + geolocations.length + "/" + geo_cnt_sent + "/" + (geo_cnt_sent + geolocations.length) + "<br/>" +
-                // "snapshot: " + snap.length + "/" + snapshots.length + "/" + snap_cnt_sent + "/" + (snap_cnt_sent + snapshots.length) + "<br/>" +
-                "</blockquote>");
-                */
-        });
+    if (allow_upload_rawdata === "yes") {
+        $.post('/recorder', JSON.stringify(data))
+            .done(function(data) {});
+    }
 
     if (filter_ng_time > 5 * 60 * 1000) {
         filter_ng_time = 0;
@@ -329,7 +307,8 @@ function initDialog() {
     function confirmMeta() {
         var name = $("#name").val();
         var vehicle = $("#vehicle").val();
-        //var allow_camera = $("#allow_camera :radio:checked").val();
+        var allow_camera = $("#allow_camera :radio:checked").val();
+        allow_upload_rawdata = $("#allow_upload_rawdata :radio:checked").val();
         //if (name === "" || name === "Anon") {
         if (!$("#term_check").is(":checked")) {
             //$("#validate-tips").addClass("ui-state-highlight");
@@ -338,17 +317,17 @@ function initDialog() {
             $("#term").css({ 'color': 'red', 'font-size': '150%' });
 
         } else {
-            Cookies.set("name", name, { expires: 30 });
-            Cookies.set("vehicle", vehicle, { expires: 30 });
+            Cookies.set("name", name, { expires: 100 });
+            Cookies.set("vehicle", vehicle, { expires: 100 });
             //Cookies.set("allow_camera", allow_camera, { expires: 30 });
             dialog.dialog("close");
 
             //update_uuid();
             //setInterval(update_uuid, 300000);
 
-            // if (allow_camera === "yes") {
-            //     initVideo();
-            // }
+            if (allow_camera === "yes") {
+                initVideo();
+            }
             start_recording_click();
             var noSleep = new NoSleep();
             noSleep.enable();
@@ -420,10 +399,13 @@ $(function() {
             console.log('can not fetch roadinfo data.')
             console.log(err)
         })
-
-    /*
-    $.get('/getdatabyuuid', function(data) {
-        console.log(data);
-    });
-    */
+});
+$("#location").click(function() {
+    if (location_center) {
+        location_center = false;
+        $("#location").attr("src", "/images/if_ic_my_location_48px.svg");
+    } else {
+        location_center = true;
+        $("#location").attr("src", "/images/if_ic_my_location_48px_blue.svg");
+    }
 });
