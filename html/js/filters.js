@@ -11,6 +11,17 @@ function twsr_filters() {
     this.ori_filter = function(ori) {
         ori_cache.push(ori);
         ori_cache.splice(0, ori_cache.length - cache_length);
+
+        var date1 = new Date(ori_cache[ori_cache.length - 1].time.split('.')[0]);
+        var date2 = new Date(ori_cache[0].time.split('.')[0]);
+        if (Math.abs(date1 - date2) > 1000) { //check per sec
+            if (this.detection_onhand()) {
+                filter_post_status = '手機使用中';
+                ori_cache = [];
+                mot_cache = [];
+                gacc_z = [];
+            }
+        }
         return true;
     }
     this.mot_filter = function(mot) {
@@ -36,78 +47,72 @@ function twsr_filters() {
             if (Math.abs(date1 - date2) > time_interval) {
                 filter_post_status = 'NG';
                 filter_ng_time += time_interval;
+                //if (mot_cache.length >= 10) {
+                var geo_temp = geo_cache.filter(geo_ => new Date(geo_.time.split('.')[0]).getTime() > new Date(mot_cache[0].time.split('.')[0]).getTime() - 1000 && new Date(geo_.time.split('.')[0]).getTime() < new Date(mot_cache[mot_cache.length - 1].time.split('.')[0]).getTime());
 
-                if (this.detection_onhand()) {
-                    filter_post_status = 'mobile move';
+                if (geo_temp.length < time_interval / 1000) { // recive gps stable
+                    filter_post_status = 'GPS不穩定';
                 } else {
+                    var dist_sum = 0;
+                    var pt_str = '';
+                    var data = {};
+                    var points = [];
+                    var smooth_index = [];
 
-                    //if (mot_cache.length >= 10) {
-                    var geo_temp = geo_cache.filter(geo_ => new Date(geo_.time.split('.')[0]).getTime() > new Date(mot_cache[0].time.split('.')[0]).getTime() - 1000 && new Date(geo_.time.split('.')[0]).getTime() < new Date(mot_cache[mot_cache.length - 1].time.split('.')[0]).getTime());
+                    for (var i = 0; i < geo_temp.length; i++) {
+                        points.push([geo_temp[i].latitude, geo_temp[i].longitude]);
+                        pt_str += geo_temp[i].latitude + " " + geo_temp[i].longitude + ","
+                        if (i != 0) {
+                            dist_sum += this.distFromlatlng(geo_temp[i - 1].latitude, geo_temp[i - 1].longitude, geo_temp[i].latitude, geo_temp[i].longitude);
+                        }
+                    }
+                    pt_str = pt_str.substring(0, pt_str.length - 1);
+                    data.points = points;
 
-                    if (geo_temp.length < time_interval / 1000) { // recive gps stable
-                        filter_post_status = 'gps unstable';
+                    if (dist_sum <= 10) {
+                        filter_post_status = '靜止狀態';
+                    } else if (dist_sum >= 500) {
+                        filter_post_status = '速度異常';
                     } else {
-                        var dist_sum = 0;
-                        var pt_str = '';
-                        var data = {};
-                        var points = [];
-                        var smooth_index = [];
-
-                        for (var i = 0; i < geo_temp.length; i++) {
-                            points.push([geo_temp[i].latitude, geo_temp[i].longitude]);
-                            pt_str += geo_temp[i].latitude + " " + geo_temp[i].longitude + ","
-                            if (i != 0) {
-                                dist_sum += this.distFromlatlng(geo_temp[i - 1].latitude, geo_temp[i - 1].longitude, geo_temp[i].latitude, geo_temp[i].longitude);
-                            }
-                        }
-                        pt_str = pt_str.substring(0, pt_str.length - 1);
-                        data.points = points;
-
-                        if (dist_sum <= 10) {
-                            filter_post_status = 'too slow';
-                        } else if (dist_sum >= 500) {
-                            filter_post_status = 'too fast';
-                        } else {
-                            var stdZ = standardDeviation(gacc_z);
-                            var latlng = geo_temp[parseInt(geo_temp.length / 2)].latitude + ' ' + geo_temp[parseInt(geo_temp.length / 2)].longitude;
+                        var stdZ = standardDeviation(gacc_z);
+                        var latlng = geo_temp[parseInt(geo_temp.length / 2)].latitude + ' ' + geo_temp[parseInt(geo_temp.length / 2)].longitude;
 
 
-                            var geolocation_accuracy = geo_temp.reduce(function(sum, value) {
-                                return sum + value.accuracy;
-                            }, 0) / geo_temp.length;
+                        var geolocation_accuracy = geo_temp.reduce(function(sum, value) {
+                            return sum + value.accuracy;
+                        }, 0) / geo_temp.length;
 
-                            var geolocation_speed = geo_temp.reduce(function(sum, value) {
-                                return sum + value.speed;
-                            }, 0) / geo_temp.length;
+                        var geolocation_speed = geo_temp.reduce(function(sum, value) {
+                            return sum + value.speed;
+                        }, 0) / geo_temp.length;
 
-                            data.smooth_index = stdZ;
+                        data.smooth_index = stdZ;
 
-                            var d = new Date(mot_cache[0].time.split('.')[0]);
-                            var utc = d.getTime() + (d.getTimezoneOffset() * 60000);
-                            var d8 = new Date(utc + (3600000 * 8));
+                        var d = new Date(mot_cache[0].time.split('.')[0]);
+                        var utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+                        var d8 = new Date(utc + (3600000 * 8));
 
-                            var postdata = JSON.stringify({
-                                //"time": mot_cache[0].time,
-                                "time": d8,
-                                //"smooth_index": stdZ,
-                                "std_section": stdZ,
-                                "source": 'GeoAccCollector' + location.port,
-                                "points": pt_str,
-                                //"remark": pt_str,
-                                "latlng": latlng,
-                                "uuid": Cookies.get("uuid"),
-                                "vehicle_type": Cookies.get("vehicle"),
-                                "user": Cookies.get("name"),
-                                "geolocation_accuracy": geolocation_accuracy,
-                                "geolocation_speed": geolocation_speed
-                            });
-                            drawPolyLine(data, true);
+                        var postdata = JSON.stringify({
+                            //"time": mot_cache[0].time,
+                            "time": d8,
+                            //"smooth_index": stdZ,
+                            "std_section": stdZ,
+                            "source": 'GeoAccCollector' + location.port,
+                            "points": pt_str,
+                            //"remark": pt_str,
+                            "latlng": latlng,
+                            "uuid": Cookies.get("uuid"),
+                            "vehicle_type": Cookies.get("vehicle"),
+                            "user": Cookies.get("name"),
+                            "geolocation_accuracy": geolocation_accuracy,
+                            "geolocation_speed": geolocation_speed
+                        });
+                        drawPolyLine(data, true);
 
-                            $.post('/insertDB', postdata);
-                            filter_post_num += 1;
-                            filter_post_status = 'OK';
-                            filter_ng_time = 0;
-                        }
+                        $.post('/insertDB', postdata);
+                        filter_post_num += 1;
+                        filter_post_status = 'OK';
+                        filter_ng_time = 0;
                     }
                 }
                 mot_cache = [];
@@ -128,7 +133,7 @@ function twsr_filters() {
     this.distFromlatlng = function(lat0, lng0, lat1, lng1) {
         return Math.sqrt(Math.pow(lat0 - lat1, 2) + Math.pow(lng0 - lng1, 2)) * scale_dist;
     }
-    this.detection_onhand = function() {
+    this.detection_onhand_old = function() {
         var ori_temp = ori_cache.filter(ori_ =>
             new Date(ori_.time.split('.')[0]).getTime() > new Date(mot_cache[0].time.split('.')[0]).getTime() &&
             new Date(ori_.time.split('.')[0]).getTime() < new Date(mot_cache[mot_cache.length - 1].time.split('.')[0]).getTime());
@@ -158,6 +163,39 @@ function twsr_filters() {
         var sum = Math.abs(sum_a) + Math.abs(sum_b) + Math.abs(sum_g);
         //alert(sum / alpha.length);
         if (sum > 90) {
+            return true;
+            //return false;
+        } else {
+            return false;
+        }
+    }
+    this.detection_onhand = function() {
+        var ori_temp = ori_cache;
+
+        var alpha = ori_temp.map(ori_temp => Math.round((ori_temp.alpha + 360) % 360));
+        var beta = ori_temp.map(ori_temp => Math.round((ori_temp.beta + 360) % 360));
+        var gamma = ori_temp.map(ori_temp => Math.round((ori_temp.gamma + 360) % 360));
+
+        // check 1: sum(abs(dif(per)))
+        var sum_a = 0;
+        var sum_b = 0;
+        var sum_g = 0;
+        for (var i = 1; i < alpha.length; i++) {
+            var da = Math.abs(alpha[i] - alpha[i - 1]) < Math.abs(alpha[i] - (alpha[i - 1] + 360) % 360) ? Math.abs(alpha[i] - alpha[i - 1]) : Math.abs(alpha[i] - (alpha[i - 1] + 360) % 360);
+            var db = Math.abs(beta[i] - beta[i - 1]) < Math.abs(beta[i] - (beta[i - 1] + 360) % 360) ? Math.abs(beta[i] - beta[i - 1]) : Math.abs(beta[i] - (beta[i - 1] + 360) % 360);
+            var dg = Math.abs(gamma[i] - gamma[i - 1]) < Math.abs(gamma[i] - (gamma[i - 1] + 360) % 360) ? Math.abs(gamma[i] - gamma[i - 1]) : Math.abs(gamma[i] - (gamma[i - 1] + 360) % 360);
+            sum_a += da;
+            sum_b += db;
+            sum_g += dg;
+        }
+        // check 2: dif(end-start)
+        var dif_a = Math.abs(alpha[0] - alpha[alpha.length - 1]);
+        var dif_b = Math.abs(beta[0] - beta[beta.length - 1]);
+        var dif_g = Math.abs(gamma[0] - gamma[gamma.length - 1]);
+
+        var dif = Math.abs(dif_a) + Math.abs(dif_b) + Math.abs(dif_g);
+        var sum = Math.abs(sum_a) + Math.abs(sum_b) + Math.abs(sum_g);
+        if (dif > 90) {
             return true;
         } else {
             return false;

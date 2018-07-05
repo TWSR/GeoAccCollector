@@ -2,7 +2,7 @@ var _map = {};
 var location_center = true;
 
 function mapini() {
-    _map = L.map('map', { zoomControl: false }).setView([25.058, 121.524], 17);
+    _map = L.map('map', { zoomControl: false, preferCanvas: true }).setView([25.058, 121.524], 17);
     L.control.zoom(false);
     L.tileLayer('https://tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
         //L.tileLayer('http://a.tile.stamen.com/toner/{z}/{x}/{y}.png', {
