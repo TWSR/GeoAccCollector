@@ -10,5 +10,11 @@ pachage.json
     remove scripts/install.sh &&
         "start": "scripts/install.sh && node index.js", 
 
+copy folder to GCP directly, because can't use git??
+
+app.yaml
+    env: flex
+    runtime: nodejs
+
 gcloud app deploy 
 

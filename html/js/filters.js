@@ -16,10 +16,14 @@ function twsr_filters() {
         var date2 = new Date(ori_cache[0].time.split('.')[0]);
         if (Math.abs(date1 - date2) > 1000) { //check per sec
             if (this.detection_onhand()) {
-                filter_post_status = '手機使用中';
+                //filter_post_status = '手機使用中';
                 ori_cache = [];
                 mot_cache = [];
                 gacc_z = [];
+            } else {
+                if (filter_post_status.indexOf('手機使用中') !== -1) {
+                    filter_post_status = '重新計算中';
+                }
             }
         }
         return true;
@@ -70,7 +74,7 @@ function twsr_filters() {
                     data.points = points;
 
                     if (dist_sum <= 10) {
-                        filter_post_status = '靜止狀態';
+                        filter_post_status = '低速或靜止';
                     } else if (dist_sum >= 500) {
                         filter_post_status = '速度異常';
                     } else {
@@ -171,38 +175,95 @@ function twsr_filters() {
     }
     this.detection_onhand = function() {
         var ori_temp = ori_cache;
-
-        var alpha = ori_temp.map(ori_temp => Math.round((ori_temp.alpha + 360) % 360));
-        var beta = ori_temp.map(ori_temp => Math.round((ori_temp.beta + 360) % 360));
-        var gamma = ori_temp.map(ori_temp => Math.round((ori_temp.gamma + 360) % 360));
+        var num = ori_temp.length;
+        // var alpha = ori_temp.map(ori_temp => Math.round((ori_temp.alpha + 360) % 360));
+        // var beta = ori_temp.map(ori_temp => Math.round((ori_temp.beta + 360) % 360));
+        // var gamma = ori_temp.map(ori_temp => Math.round((ori_temp.gamma + 360) % 360));
 
         // check 1: sum(abs(dif(per)))
-        var sum_a = 0;
-        var sum_b = 0;
-        var sum_g = 0;
-        for (var i = 1; i < alpha.length; i++) {
-            var da = Math.abs(alpha[i] - alpha[i - 1]) < Math.abs(alpha[i] - (alpha[i - 1] + 360) % 360) ? Math.abs(alpha[i] - alpha[i - 1]) : Math.abs(alpha[i] - (alpha[i - 1] + 360) % 360);
-            var db = Math.abs(beta[i] - beta[i - 1]) < Math.abs(beta[i] - (beta[i - 1] + 360) % 360) ? Math.abs(beta[i] - beta[i - 1]) : Math.abs(beta[i] - (beta[i - 1] + 360) % 360);
-            var dg = Math.abs(gamma[i] - gamma[i - 1]) < Math.abs(gamma[i] - (gamma[i - 1] + 360) % 360) ? Math.abs(gamma[i] - gamma[i - 1]) : Math.abs(gamma[i] - (gamma[i - 1] + 360) % 360);
-            sum_a += da;
-            sum_b += db;
-            sum_g += dg;
-        }
-        // check 2: dif(end-start)
-        var dif_a = Math.abs(alpha[0] - alpha[alpha.length - 1]);
-        var dif_b = Math.abs(beta[0] - beta[beta.length - 1]);
-        var dif_g = Math.abs(gamma[0] - gamma[gamma.length - 1]);
+        // var sum_a = 0;
+        // var sum_b = 0;
+        // var sum_g = 0;
+        // for (var i = 1; i < alpha.length; i++) {
+        //     var da = Math.abs(alpha[i] - alpha[i - 1]) < Math.abs(alpha[i] - (alpha[i - 1] + 360) % 360) ? Math.abs(alpha[i] - alpha[i - 1]) : Math.abs(alpha[i] - (alpha[i - 1] + 360) % 360);
+        //     var db = Math.abs(beta[i] - beta[i - 1]) < Math.abs(beta[i] - (beta[i - 1] + 360) % 360) ? Math.abs(beta[i] - beta[i - 1]) : Math.abs(beta[i] - (beta[i - 1] + 360) % 360);
+        //     var dg = Math.abs(gamma[i] - gamma[i - 1]) < Math.abs(gamma[i] - (gamma[i - 1] + 360) % 360) ? Math.abs(gamma[i] - gamma[i - 1]) : Math.abs(gamma[i] - (gamma[i - 1] + 360) % 360);
+        //     sum_a += da;
+        //     sum_b += db;
+        //     sum_g += dg;
+        // }
 
-        var dif = Math.abs(dif_a) + Math.abs(dif_b) + Math.abs(dif_g);
-        var sum = Math.abs(sum_a) + Math.abs(sum_b) + Math.abs(sum_g);
-        if (dif > 90) {
+
+        // check 2: dif(end-start)
+        // var d_a = (ori_temp[0].alpha * Math.PI / 180 - ori_temp[num - 1].alpha * Math.PI / 180);
+        // var dif_a = Math.abs(Math.atan2(Math.sin(d_a), Math.cos(d_a)) / Math.PI * 180);
+
+        // var d_b = (ori_temp[0].beta * Math.PI / 180 - ori_temp[num - 1].beta * Math.PI / 180);
+        // var dif_b = Math.abs(Math.atan2(Math.sin(d_b), Math.cos(d_b)) / Math.PI * 180);
+
+        // var d_g = (ori_temp[0].gamma * Math.PI / 180 - ori_temp[num - 1].gamma * Math.PI / 180);
+        // var dif_g = Math.abs(Math.atan2(Math.sin(d_g), Math.cos(d_g)) / Math.PI * 180);
+        // var dif_a = Math.abs(alpha[0] - alpha[num - 1]) <
+        //     Math.abs(alpha[0] - ((alpha[num - 1] + 360) % 360)) ?
+        //     Math.abs(alpha[0] - alpha[num - 1]) :
+        //     Math.abs(alpha[0] - ((alpha[num - 1] + 360) % 360));
+
+        // var dif_b = Math.abs(beta[0] - beta[num - 1]) <
+        //     Math.abs(beta[0] - ((beta[num - 1] + 360) % 360)) ?
+        //     Math.abs(beta[0] - beta[num - 1]) :
+        //     Math.abs(beta[0] - ((beta[num - 1] + 360) % 360));
+
+        // var dif_g = Math.abs(gamma[0] - gamma[num - 1]) <
+        //     Math.abs(gamma[0] - ((gamma[num - 1] + 360) % 360)) ?
+        //     Math.abs(gamma[0] - gamma[num - 1]) :
+        //     Math.abs(gamma[0] - ((gamma[num - 1] + 360) % 360));
+
+        //var dif = Math.abs(dif_a) + Math.abs(dif_b) + Math.abs(dif_g);
+        // var sum = Math.abs(sum_a) + Math.abs(sum_b) + Math.abs(sum_g);
+        // dif_a = Math.min(dif_a, Math.abs(180 - dif_a));
+        // dif_b = Math.min(dif_b, Math.abs(180 - dif_b));
+        // dif_g = Math.min(dif_g, Math.abs(180 - dif_g));
+
+        // if (dif_a > 30 || dif_b > 30 || dif_g > 30) {
+        //     if (Math.abs(dif_a - dif_g) < 3 && dif_b < 30) {
+        //         return false;
+        //     } else {
+        //         filter_post_status = Math.round(ori_temp[0].alpha) + ',' + Math.round(ori_temp[num - 1].alpha) + ',' + Math.round(dif_a) + "</br>" +
+        //             Math.round(ori_temp[0].beta) + ',' + Math.round(ori_temp[num - 1].beta) + ',' + Math.round(dif_b) + "</br>" +
+        //             Math.round(ori_temp[0].gamma) + ',' + Math.round(ori_temp[num - 1].gamma) + ',' + Math.round(dif_g);
+        //         return true;
+        //     }
+
+        // } else {
+        //     return false;
+        // }
+
+        // chk3:angle between two normal vector
+        var rotation_matrix0 = R_Matrix(ori_temp[0].beta * Math.PI / 180.0,
+            ori_temp[0].gamma * Math.PI / 180.0,
+            ori_temp[0].alpha * Math.PI / 180.0);
+        var normalvector0 = [rotation_matrix0[0][2], rotation_matrix0[1][2], rotation_matrix0[2][2]];
+
+        var rotation_matrix1 = R_Matrix(ori_temp[ori_cache.length - 1].beta * Math.PI / 180.0,
+            ori_temp[ori_cache.length - 1].gamma * Math.PI / 180.0,
+            ori_temp[ori_cache.length - 1].alpha * Math.PI / 180.0);
+        var normalvector1 = [rotation_matrix1[0][2], rotation_matrix1[1][2], rotation_matrix1[2][2]];
+        var dif_angle = angleFrom2vector(normalvector0, normalvector1);
+        if (Math.abs(dif_angle) > 30) {
+            filter_post_status = "手機使用中" + Math.round(dif_angle);
             return true;
         } else {
             return false;
         }
     }
-
     return this;
+}
+
+function angleFrom2vector(v1, v2) {
+    var dot = v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
+    var normv1 = Math.sqrt(Math.pow(v1[0], 2) + Math.pow(v1[1], 2) + Math.pow(v1[2], 2));
+    var normv2 = Math.sqrt(Math.pow(v2[0], 2) + Math.pow(v2[1], 2) + Math.pow(v2[2], 2));
+    return Math.acos(dot / (normv1 * normv2)) / Math.PI * 180;;
 }
 
 function standardDeviation(values) {
