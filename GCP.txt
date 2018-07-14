@@ -15,6 +15,6 @@ copy folder to GCP directly, because can't use git??
 app.yaml
     env: flex
     runtime: nodejs
-
-gcloud app deploy 
+    
+gcloud app deploy
 
