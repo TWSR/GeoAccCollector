@@ -9,3 +9,7 @@ The goal is to detect non-smooth road with your mobile phone, using mobile web b
  * You need a database, such as mysql, that keeps the filtered data from web browser.
  * With ```npm install```, you should be able to run this project as a website.
  * Connect to the website, and you are ready to go.
+
+## development site
+Currently we are using dev_map branch, and host to site https://collector.twsr.xyz.
+If you want to try the running demo, you may use you iOS Safari or Android Chrome connect to this site.
