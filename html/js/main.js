@@ -344,6 +344,7 @@ function initDialog() {
             "OK": confirmMeta
         }
     });
+
     dialog.find("form").on("submit", function(event) {
         event.preventDefault();
         confirmMeta();
@@ -352,7 +353,11 @@ function initDialog() {
     $("#vehicle").find("option").remove().end();
     $("#vehicle").append("<option>car</option><option>bus</option><option>moto</option><option>e-moto</option><option>bike</option><option>train</option><option>others</option>");
     $("#vehicle").selectmenu({ width: "auto" });
+
     dialog.dialog("open");
+    $(".form-finish").after("<span class='article'>or</span>");
+    $(".ui-dialog-buttonpane").append('<a href="https://twsr.github.io/landing"><img id="twsr-icon" src="/images/favicon.ico" title="link to landing page"></a><a href="https://g0v.tw/zh-TW/index.html"><img id="gov-icon" src="/images/g0v.png" title="link to g0v"></a><a href="https://github.com/TWSR"><img id="github-icon" src="/images/GitHub-Mark-120px-plus.png" title="link to github"></a>');
+    // $('<a href="https://twsr.github.io/landing"><img id="twsr-icon" src="/images/favicon.ico" title="link to landing page"></a><a href="https://g0v.tw/zh-TW/index.html"><img id="gov-icon" src="/images/g0v.png" title="link to g0v"></a><a href="https://github.com/TWSR"><img id="github-icon" src="/images/GitHub-Mark-120px-plus.png" title="link to github"></a>').appendTo("ui-widget-content");
 }
 
 function update_uuid() {

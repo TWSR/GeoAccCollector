@@ -97,7 +97,7 @@ video {
 #meta-form {
     font-size: 80%;
     width: 90%;
-    height: 60%;
+    height: 70%;
 }
 
 #vehicle {
@@ -115,4 +115,27 @@ video {
 
 ul.ui-menu {
     max-height: 100px !important;
+}
+
+#gov-icon {
+    position: absolute;
+    bottom: 5vh;
+    height: 30px;
+    left: 40%;
+}
+
+#github-icon {
+    position: absolute;
+    bottom: 5vh;
+    height: 30px;
+    left: 25%;
+}
+
+#twsr-icon {
+    position: absolute;
+    bottom: 5vh;
+    vertical-align: middle;
+    height: 30px;
+    left: 10%;
+    border-radius: 50%;
 }
